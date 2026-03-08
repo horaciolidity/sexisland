@@ -3,12 +3,12 @@ import { motion } from 'framer-motion';
 import { User, CheckCircle2, Star } from 'lucide-react';
 
 const PlaneVisual = () => {
-    // 30 seats total (8 columns of 4 seats = 32 capacity, we use 30)
+    // 30 seats total
     const totalSeats = 30;
 
-    // Confirmed passengers: 7 total, distributed on both sides
-    // Let's place 4 on the left side and 3 on the right side
-    const confirmedIndices = [0, 1, 5, 9, 2, 7, 11];
+    // Confirmed passengers redistributed to the back (Indices 8 to 29)
+    // VIP section (Indices 0-7) stays FREE / Available
+    const confirmedIndices = [12, 13, 16, 17, 24, 25, 29];
 
     const getPassengerData = (index) => {
         const names = [
@@ -20,7 +20,7 @@ const PlaneVisual = () => {
             return {
                 name: names[idx] || `Guest #${idx + 1}`,
                 country: ["Italy", "USA", "UAE", "Japan", "France", "Spain", "Denmark"][idx % 7],
-                type: index < 8 ? "VIP Diamond" : "VIP Gold"
+                type: "Platinum Member"
             };
         }
         return null;
@@ -52,7 +52,7 @@ const PlaneVisual = () => {
 
                         {/* VIP Label Separator */}
                         <div className="absolute left-40 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-primary/40 to-transparent z-20">
-                            <div className="absolute top-[-25px] left-1/2 -translate-x-1/2 text-[9px] font-black text-primary tracking-widest bg-[#05070A] px-2 whitespace-nowrap border border-primary/20 rounded">CABINA DIAMOND</div>
+                            <div className="absolute top-[-25px] left-1/2 -translate-x-1/2 text-[9px] font-black text-primary tracking-widest bg-[#05070A] px-2 whitespace-nowrap border border-primary/20 rounded uppercase">Diamond Zone (Available)</div>
                         </div>
 
                         {/* Wings Decoration */}
@@ -127,7 +127,7 @@ const PlaneVisual = () => {
                     <div className="w-4 h-4 rounded-md border-2 border-primary/40 bg-primary/5">
                         <Star size={10} className="mx-auto mt-0.5 text-primary opacity-50" />
                     </div>
-                    <span>Cabina Diamond</span>
+                    <span>Cabina Diamond (Libre)</span>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="w-4 h-4 rounded bg-white/5 border border-white/10"></div>
@@ -150,14 +150,17 @@ const SeatWrapper = ({ index, isConfirmed, data, isVIP }) => {
         w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all duration-500 cursor-default
         ${isConfirmed
                     ? 'bg-primary shadow-[0_0_20px_rgba(212,175,55,0.5)] border-primary seat-confirmed'
-                    : `bg-white/5 border ${isVIP ? 'border-primary/30' : 'border-white/10'} hover:border-primary/50`
+                    : `bg-white/5 border ${isVIP ? 'border-primary/30 animate-pulse-slow' : 'border-white/10'} hover:border-primary/50`
                 }
       `}>
                 {isConfirmed ? (
                     <User size={20} className="text-black" />
                 ) : (
                     isVIP ? (
-                        <Star size={12} className="text-primary/30 group-hover:text-primary transition-colors" />
+                        <div className="relative">
+                            <Star size={12} className="text-primary/40 group-hover:text-primary transition-colors duration-500" />
+                            <div className="absolute -inset-1 bg-primary/10 blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        </div>
                     ) : (
                         <span className="text-[9px] text-white/5 font-mono group-hover:text-white/40 transition-colors">{index + 1}</span>
                     )
@@ -168,6 +171,10 @@ const SeatWrapper = ({ index, isConfirmed, data, isVIP }) => {
                 <div className="absolute -top-1 -right-1 z-30">
                     <CheckCircle2 size={14} className="text-white fill-green-500 rounded-full" />
                 </div>
+            )}
+
+            {!isConfirmed && isVIP && (
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-[6px] font-black text-primary/0 group-hover:text-primary/100 transition-all uppercase tracking-tighter bg-black/80 px-1 rounded">VIP</div>
             )}
 
             {isConfirmed && (
