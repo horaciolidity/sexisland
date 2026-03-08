@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Ship,
@@ -14,7 +14,9 @@ import {
   CalendarDays,
   User as UserIcon,
   LogIn as LogInIcon,
-  LogOut as LogOutIcon
+  LogOut as LogOutIcon,
+  Menu,
+  X as XIcon
 } from 'lucide-react';
 import GroupChat from './components/GroupChat';
 import PlaneVisual from './components/PlaneVisual';
@@ -25,6 +27,16 @@ function App() {
   const [showChat, setShowChat] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [user, setUser] = useState(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogin = (userData) => {
     setUser(userData);
@@ -35,169 +47,251 @@ function App() {
     setUser(null);
   };
 
+  const navigationLinks = [
+    { name: 'La Experiencia', href: '#experiencia' },
+    { name: 'El Vuelo', href: '#vuelo' },
+    { name: 'Itinerario', href: '#itinerario' },
+    { name: 'Planes VIP', href: '#planes' },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#05070A] text-white">
+    <div className="min-h-screen bg-[#05070A] text-white selection:bg-primary/30">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 p-6 flex justify-between items-center glass-morphism border-0 border-b border-white/5 rounded-none">
-        <div className="text-2xl font-black gold-text tracking-tighter">SEX ISLAND <span className="text-xs font-light text-white ml-2 tracking-widest opacity-60">EXPERIENCE</span></div>
-        <div className="hidden lg:flex gap-10 items-center text-[11px] font-bold tracking-[0.2em] uppercase">
-          <a href="#experiencia" className="hover:text-primary transition">La Experiencia</a>
-          <a href="#itinerario" className="hover:text-primary transition">Itinerario</a>
-          <a href="#planes" className="hover:text-primary transition">Planes VIP</a>
+      <nav
+        className={`fixed top-0 w-full z-50 transition-all duration-500 px-8 ${scrolled
+            ? 'py-4 glass-morphism border-0 border-b border-white/5 rounded-none'
+            : 'py-8 bg-transparent'
+          }`}
+      >
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="text-2xl font-black gold-text tracking-tighter">
+            SEX ISLAND <span className="text-xs font-light text-white ml-2 tracking-[0.2em] opacity-40">2026</span>
+          </div>
 
-          {user ? (
-            <div className="flex items-center gap-4 border-l border-white/10 pl-6">
-              <span className="text-primary tracking-widest flex items-center gap-2">
-                <UserIcon size={14} /> VIP: {user.name.toUpperCase()}
-              </span>
-              <button onClick={handleLogout} className="text-white/40 hover:text-white transition">
-                <LogOutIcon size={16} />
+          {/* Desktop Nav */}
+          <div className="hidden lg:flex gap-10 items-center">
+            {navigationLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/60 hover:text-primary transition-all underline decoration-transparent hover:decoration-primary decoration-2 underline-offset-8"
+              >
+                {link.name}
+              </a>
+            ))}
+          </div>
+
+          <div className="hidden lg:flex gap-6 items-center">
+            {user ? (
+              <div className="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-full border border-white/5">
+                <span className="text-[10px] font-bold text-primary tracking-widest flex items-center gap-2">
+                  <UserIcon size={12} /> {user.name.toUpperCase()}
+                </span>
+                <button onClick={handleLogout} className="text-white/40 hover:text-white transition">
+                  <LogOutIcon size={14} />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowLogin(true)}
+                className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/60 hover:text-white transition"
+              >
+                ACCESO VIP
               </button>
-            </div>
-          ) : (
+            )}
             <button
-              onClick={() => setShowLogin(true)}
-              className="flex items-center gap-2 hover:text-primary transition border-l border-white/10 pl-6"
+              className="btn-primary"
+              onClick={() => setShowChat(true)}
             >
-              <LogInIcon size={16} /> ACCESO VIP
+              CHAT PRIVADO
             </button>
-          )}
+          </div>
 
-          <button className="btn-primary" onClick={() => setShowChat(true)}>Chat Privado</button>
+          {/* Mobile Menu Button */}
+          <button
+            className="lg:hidden text-white"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <XIcon size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </nav>
 
+      {/* Mobile Navigation Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-[49] glass-morphism flex flex-col items-center justify-center gap-8 pt-20"
+          >
+            {navigationLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-2xl font-bold uppercase tracking-widest text-white/60 hover:text-primary"
+              >
+                {link.name}
+              </a>
+            ))}
+            <button
+              className="btn-primary mt-4"
+              onClick={() => { setShowChat(true); setMobileMenuOpen(false); }}
+            >
+              CHAT PRIVADO
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Hero Section */}
-      <header className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        <div className="absolute inset-0 z-0 scale-105">
+      <header className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-36 pb-20 px-8">
+        <div className="absolute inset-0 z-0">
           <img
             src="/model_vip.png"
             alt="Paradise Island Luxury"
-            className="w-full h-full object-cover opacity-50 blur-[1px]"
+            className="w-full h-full object-cover opacity-60 mix-blend-luminosity hover:mix-blend-normal transition-all duration-1000"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#05070A] via-[#05070A]/80 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#05070A] via-[#05070A]/50 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-[#05070A]/30 via-transparent to-transparent"></div>
         </div>
 
-        <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
+        <div className="relative z-10 text-center max-w-5xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
+            transition={{ duration: 0.8 }}
           >
-            <div className="mb-6 flex items-center justify-center gap-3">
-              <div className="h-[1px] w-12 bg-primary"></div>
-              <span className="text-primary text-xs font-black tracking-[0.4em] uppercase">Edición 2026</span>
-              <div className="h-[1px] w-12 bg-primary"></div>
-            </div>
-
-            <h1 className="text-5xl md:text-8xl font-black mb-6 leading-tight">
-              REDEFINE EL <span className="gold-text">LUJO</span><br />
-              DEFINA EL <span className="gold-text">PLACER</span>
+            <span className="section-tag">Bienvenido al Santuario</span>
+            <h1 className="text-6xl md:text-9xl font-black mb-8 leading-none tracking-tighter">
+              BEYOND <br />
+              <span className="gold-text">LUXURY</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-dim max-w-2xl mx-auto mb-10 leading-relaxed font-light">
-              Un santuario privado donde 30 hombres y 60 mujeres se reúnen para 7 días de indulgencia total en el paraíso.
+            <p className="text-lg md:text-xl text-dim max-w-2xl mx-auto mb-12 leading-relaxed font-light">
+              Donde 30 elegidos y 60 modelos desafían los límites del placer en una isla privada inexplorada.
+              Más que un tour, es su propia leyenda.
             </p>
 
-            <PlaneVisual />
-
-            <div className="mt-16 flex flex-col md:flex-row gap-6 justify-center items-center">
-              <button className="group btn-primary px-12 py-4 text-sm tracking-widest flex items-center gap-3">
-                SOLICITAR INVITACIÓN <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <button className="group btn-primary min-w-[240px]">
+                SOLICITAR INVITACIÓN
+                <ArrowRight size={14} className="inline ml-2 group-hover:translate-x-1 transition-all" />
               </button>
-              <div className="flex items-center gap-2 text-[10px] text-white/40 font-bold uppercase tracking-widest">
-                <ShieldAlert size={14} className="text-primary" />
-                Quedan 23 plazas para hombres
-              </div>
+              <button className="btn-secondary min-w-[240px]" onClick={() => window.location.href = '#experiencia'}>
+                EXPLORAR TOUR
+              </button>
             </div>
           </motion.div>
         </div>
       </header>
 
       {/* Features Showcase */}
-      <section className="py-24 px-6 max-w-7xl mx-auto" id="experiencia">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+      <section className="py-32 px-8 max-w-7xl mx-auto" id="experiencia">
+        <div className="flex flex-col md:flex-row justify-between items-start mb-24 gap-12">
           <div className="max-w-2xl text-left">
-            <h2 className="text-4xl md:text-6xl font-black mb-6">SERVICIOS <br /><span className="gold-text">SIN LÍMITES</span></h2>
-            <p className="text-dim text-lg font-light leading-relaxed">
-              Cada detalle ha sido curado para superar las expectativas de los más exigentes. Desde transporte privado hasta atención personalizada 24/7.
+            <span className="section-tag">Servicios Exclusivos</span>
+            <h2 className="text-4xl md:text-7xl font-black mb-10 leading-none">TODO BAJO <br /><span className="gold-text">CONTROL</span></h2>
+            <p className="text-dim text-xl font-light leading-relaxed">
+              Curamos cada experiencia para satisfacer su naturaleza más instintiva. No existen las reglas, solo la máxima indulgencia.
             </p>
           </div>
-          <div className="text-right flex gap-4">
-            <div className="p-4 glass-morphism border-primary/20">
-              <div className="text-3xl font-black text-primary">60+</div>
-              <div className="text-[10px] uppercase font-bold text-white/60 tracking-widest">Modelos VIP</div>
+          <div className="flex gap-6 md:mt-auto">
+            <div className="p-8 glass-morphism border-primary/20 text-center min-w-[140px]">
+              <div className="text-4xl font-black text-primary mb-2">60+</div>
+              <div className="text-[10px] uppercase font-bold text-white/40 tracking-[0.3em]">Modelos</div>
             </div>
-            <div className="p-4 glass-morphism border-primary/20">
-              <div className="text-3xl font-black text-primary">5★</div>
-              <div className="text-[10px] uppercase font-bold text-white/60 tracking-widest">Servicio</div>
+            <div className="p-8 glass-morphism border-primary/20 text-center min-w-[140px]">
+              <div className="text-4xl font-black text-primary mb-2">5★</div>
+              <div className="text-[10px] uppercase font-bold text-white/40 tracking-[0.3em]">Resort</div>
             </div>
           </div>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <FeatureCard
-            title="Isla Privada"
-            desc="Acceso exclusivo a un atolón privado con seguridad 24h y libertad absoluta."
-            icon={<Ship className="text-primary" />}
+            title="Santuario Privado"
+            desc="Un atolón caribeño inaccesible para el mundo exterior. Seguridad militar 24/7."
+            icon={<Ship size={24} />}
             img="/model_vip.png"
-            tag="Exclusividad"
+            tag="Seguridad"
           />
           <FeatureCard
-            title="Villas de Lujo"
-            desc="Residencias ultra modernas donde las 60 modelos atenderán cada deseo."
-            icon={<Hotel className="text-primary" />}
+            title="Villas Concept"
+            desc="Arquitectura moderna fundida con la selva y el mar. Jacuzzis integrados."
+            icon={<Hotel size={24} />}
             img="/villa.png"
-            tag="Alojamiento"
+            tag="Hospedaje"
           />
           <FeatureCard
-            title="Gastronomía & Placer"
-            desc="Menú gourmet de mariscos y compañía de élite en cada cena."
-            icon={<UtensilsCrossed className="text-primary" />}
+            title="Gourmet Extremo"
+            desc="Cenas sensoriales a cargo de chefs Michelin en playas vírgenes."
+            icon={<UtensilsCrossed size={24} />}
             img="/dining.png"
             tag="Gourmet"
           />
           <FeatureCard
-            title="Atención de Reinas"
-            desc="60 modelos internacionales seleccionadas para su entretenimiento personal."
-            icon={<ShieldCheck className="text-primary" />}
+            title="Servicio A-List"
+            desc="60 modelos internacionales dedicadas exclusivamente a su felicidad."
+            icon={<ShieldCheck size={24} />}
             img="/vip_service.png"
-            tag="Servicio VIP"
+            tag="Acompañamiento"
           />
         </div>
       </section>
 
+      {/* Vuelo Manifest Section (Moved outside Hero for better layout) */}
+      <section className="py-32 px-8 bg-white/5 border-y border-white/5" id="vuelo">
+        <div className="max-w-5xl mx-auto text-center mb-16">
+          <span className="section-tag">Transporte de Élite</span>
+          <h2 className="text-4xl md:text-6xl font-black mb-8 gold-text">MANIFIESTO DE VUELO</h2>
+          <p className="text-dim text-lg font-light max-w-3xl mx-auto italic">
+            "Su viaje comienza a 40,000 pies de altura. Vuelo privado charter de lujo con barra libre y catering de autor."
+          </p>
+        </div>
+
+        <PlaneVisual />
+
+        <div className="mt-16 flex justify-center">
+          <div className="inline-flex flex-col md:flex-row items-center gap-4 bg-primary/5 border border-primary/20 px-8 py-4 rounded-2xl">
+            <ShieldAlert size={20} className="text-primary animate-pulse" />
+            <span className="text-sm font-bold tracking-widest text-primary/80 uppercase">
+              Alerta: El Manifiesto se cierra en 12 horas. 4 asientos Platinum disponibles.
+            </span>
+          </div>
+        </div>
+      </section>
+
       {/* Itinerary Section */}
-      <section className="py-24 bg-white/5" id="itinerario">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl font-black gold-text mb-4">EL ITINERARIO</h2>
-            <p className="text-dim uppercase tracking-[0.3em] text-[10px]">Una semana de libertad absoluta</p>
+      <section className="py-32 px-8" id="itinerario">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col items-center text-center mb-20">
+            <span className="section-tag">Cronograma del Placer</span>
+            <h2 className="text-5xl font-black mb-4 uppercase leading-none">7 DÍAS <br /><span className="gold-text">EN EL PARAÍSO</span></h2>
           </div>
 
-          <div className="space-y-12">
+          <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
             {[
-              { day: "DÍA 1", title: "LLEGADA & BIENVENIDA VIP", icon: <Ship />, desc: "Recepción en jet privado, traslado a villas y fiesta de bienvenida en el crucero." },
-              { day: "DÍA 2-3", title: "EXPLORACIÓN & ISLA", icon: <Mic2 />, desc: "Sesiones de fotos, beach party con DJs internacionales y cena bajo las estrellas." },
-              { day: "DÍA 4-5", title: "CASINO & NOCHE DE REYES", icon: <Dices />, desc: "Noches temáticas de casino privado, torneos de poker y espectáculos VIP." },
-              { day: "DÍA 6-7", title: "DESPEDIDA ÉPICA", icon: <Gem />, desc: "La fiesta final en alta mar, ceremonia de clausura y transporte de regreso." },
+              { day: "DÍA 1", title: "DESPEGUE & BIENVENIDA", icon: <Ship />, desc: "Arribo en Jet privado. Traslado a villas VIP. Cóctel de bienvenida con las 60 modelos en el muelle privado." },
+              { day: "DÍA 2-3", title: "PRIVATE BEACH PARTY", icon: <Mic2 />, desc: "Sesiones de fotos internacionales, sets de DJs sorpresa y cena gourmet descalzos en la arena blanca." },
+              { day: "DÍA 4-5", title: "ROYAL CASINO NIGHT", icon: <Dices />, desc: "Noche de gala. Torneo de Poker VIP con las modelos. Barra libre de licores premium y apuestas altas." },
+              { day: "DÍA 6-7", title: "THE FINAL ODYSSEY", icon: <Gem />, desc: "Fiesta de despedida en el Mega Crucero. Ceremonia de clausura y vuelo privado de retorno a casa." },
             ].map((item, i) => (
               <motion.div
                 key={i}
                 whileInView={{ opacity: 1, x: 0 }}
-                initial={{ opacity: 0, x: -20 }}
-                className="flex gap-8 group"
+                initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
+                className="group p-8 glass-morphism border-white/5 hover:border-primary/20 transition-all flex gap-6 items-start"
               >
-                <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-full border border-primary flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-all">
-                    {item.day.split(' ')[1] || '•'}
-                  </div>
-                  <div className="flex-1 w-[1px] bg-white/10 mt-4 h-full"></div>
+                <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-all font-black text-xl">
+                  {item.day.split(' ')[1].charAt(0)}
                 </div>
-                <div className="pb-8">
-                  <span className="text-primary font-bold text-xs tracking-widest uppercase mb-2 block">{item.day}</span>
-                  <h3 className="text-2xl font-black mb-4 group-hover:text-primary transition-colors">{item.title}</h3>
-                  <p className="text-dim max-w-xl font-light">{item.desc}</p>
+                <div>
+                  <span className="text-primary font-bold text-[10px] tracking-[0.3em] uppercase mb-2 block">{item.day}</span>
+                  <h3 className="text-xl font-bold mb-3 tracking-tighter">{item.title}</h3>
+                  <p className="text-dim text-sm font-light leading-relaxed">{item.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -206,43 +300,50 @@ function App() {
       </section>
 
       {/* Tiers / Plans */}
-      <section className="py-24 px-6" id="planes">
-        <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-4xl font-black mb-16">SELECCIONA TU <span className="gold-text">NIVEL</span></h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <PlanCard
-              name="Diamond VIP"
-              price="$15,000"
-              features={[
-                "Traslado en Jet Privado (First Class)",
-                "Villa privada con piscina infinita",
-                "Asistente personal 24/7",
-                "Acceso Ilimitado al Casino VIP",
-                "Mesa reservada en el escenario con DJs",
-                "Tratamiento Real con las 60 modelos"
-              ]}
-              highlight
-            />
+      <section className="py-32 px-8 bg-black/40 border-t border-white/5" id="planes">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-24">
+            <span className="section-tag">Únase a los elegidos</span>
+            <h2 className="text-5xl md:text-7xl font-black mb-8 uppercase">PLAZAS <span className="gold-text">LIMITADAS</span></h2>
+            <p className="text-dim text-lg max-w-3xl mx-auto">
+              Solo 30 hombres por tour. Seleccione la membresía que define sus ambiciones.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8 items-stretch pt-12">
             <PlanCard
               name="Platinum Member"
               price="$10,000"
               features={[
                 "Vuelo Charter VVIP",
-                "Suite de Lujo frente al mar",
-                "Barra libre y menú gourmet",
-                "Acceso a todas las fiestas con 60 modelos",
-                "Crédito en el Casino de $1,000"
+                "Suite Mar Deluxe",
+                "Acceso Total Fiestas",
+                "60 Modelas Confirmadas",
+                "Crédito Casino $1,000"
               ]}
+            />
+            <PlanCard
+              name="Diamond VIP"
+              price="$15,000"
+              features={[
+                "Jet Privado First Class",
+                "Villa Piscina Infinita",
+                "Concierge Personal 24/7",
+                "Casino Ilimitado VIP",
+                "Mesa Stage con DJs",
+                "Prioridad con Modelos"
+              ]}
+              highlight
             />
             <PlanCard
               name="Private Group"
               price="Custom"
               features={[
                 "Villas Privadas Exclusivas",
-                "Seguridad propia de alto nivel",
-                "Menú y Chef especializado",
-                "Fiesta Privada en Playa Secreta",
-                "Logística personalizada para su grupo"
+                "Seguridad Particular",
+                "Chef & Menú Propio",
+                "Fiesta en Isla Secreta",
+                "Logística a medida"
               ]}
             />
           </div>
@@ -274,43 +375,49 @@ function App() {
       {!showChat && (
         <button
           onClick={() => setShowChat(true)}
-          className="fixed bottom-8 right-8 w-16 h-16 rounded-full bg-primary flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.4)] z-50 hover:scale-110 transition group"
+          className="fixed bottom-10 right-10 w-16 h-16 rounded-[20px] bg-primary flex items-center justify-center shadow-[0_10px_30px_rgba(212,175,55,0.4)] z-50 hover:scale-110 active:scale-95 transition-all group pulse-gold"
         >
           <MessageSquare color="black" className="group-hover:rotate-12 transition-transform" />
         </button>
       )}
 
-      <footer className="py-20 border-t border-white/5 bg-black">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12">
-          <div className="col-span-2">
-            <div className="text-2xl font-black gold-text mb-6 uppercase tracking-tighter">SEX ISLAND</div>
-            <p className="text-dim text-sm max-w-sm mb-8 leading-relaxed">
-              La experiencia más exclusiva del mundo diseñada para aquellos hombres que no se conforman con lo ordinario.
+      {/* Footer */}
+      <footer className="pt-32 pb-16 px-8 border-t border-white/5 bg-black">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-16 mb-24">
+          <div className="md:col-span-2">
+            <div className="text-3xl font-black gold-text mb-8 uppercase tracking-tighter">SEX ISLAND</div>
+            <p className="text-dim text-lg max-w-sm mb-12 font-light italic">
+              "Para el hombre que cree que ya lo ha tenido todo."
             </p>
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary transition cursor-pointer text-dim hover:text-primary underline">TW</div>
-              <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary transition cursor-pointer text-dim hover:text-primary underline">IG</div>
-              <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary transition cursor-pointer text-dim hover:text-primary underline">TG</div>
+            <div className="flex gap-6">
+              <SocialIcon name="Instagram" />
+              <SocialIcon name="Telegram" />
+              <SocialIcon name="X" />
             </div>
           </div>
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-widest text-primary mb-6">Información</h4>
-            <ul className="space-y-4 text-sm text-dim">
-              <li className="hover:text-white cursor-pointer transition">Privacidad</li>
-              <li className="hover:text-white cursor-pointer transition">Seguridad</li>
-              <li className="hover:text-white cursor-pointer transition">Condiciones</li>
+            <h4 className="font-bold text-[10px] uppercase tracking-[0.3em] text-primary mb-8">Navegación</h4>
+            <ul className="space-y-4 text-sm font-medium text-white/60">
+              <li><a href="#experiencia" className="hover:text-primary transition">El Tour</a></li>
+              <li><a href="#planes" className="hover:text-primary transition">Reservas</a></li>
+              <li><a href="#itinerario" className="hover:text-primary transition">Agenda</a></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-widest text-primary mb-6">Contacto</h4>
-            <ul className="space-y-4 text-sm text-dim">
-              <li className="flex items-center gap-2">WhatsApp: +1 (234) VIP-ONLY</li>
-              <li className="flex items-center gap-2">Email: members@sexisland.vip</li>
+            <h4 className="font-bold text-[10px] uppercase tracking-[0.3em] text-primary mb-8">Contacto Privado</h4>
+            <ul className="space-y-4 text-sm font-medium text-white/60">
+              <li>WhatsApp: +1 666-VOY-ONLY</li>
+              <li>Encrypted: @SexIslandHQ</li>
+              <li>members@sexisland.vip</li>
             </ul>
           </div>
         </div>
-        <div className="text-center text-[10px] text-white/20 mt-20 uppercase tracking-[5px]">
-          © 2026 LUXURY EXPERIENCE GROUP
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 pt-8 border-t border-white/5 text-[9px] text-white/20 uppercase tracking-[0.4em] font-bold">
+          <div>© 2026 LUXURY EXPERIENCE GROUP | ALL RIGHTS RESERVED</div>
+          <div className="flex gap-8">
+            <span className="hover:text-primary cursor-pointer transition">PRIVACY POLICY</span>
+            <span className="hover:text-primary cursor-pointer transition">ADULT CONTENT GUIDELINES</span>
+          </div>
         </div>
       </footer>
     </div>
@@ -319,17 +426,21 @@ function App() {
 
 function FeatureCard({ title, desc, icon, img, tag }) {
   return (
-    <div className="relative group overflow-hidden rounded-3xl aspect-[4/5] glass-morphism flex flex-col justify-end p-8 border-white/5 hover:border-primary/30 transition-all">
-      <img src={img} className="absolute inset-0 w-full h-full object-cover transition duration-700 group-hover:scale-110 opacity-30 group-hover:opacity-50" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#05070A] via-[#05070A]/30 to-transparent"></div>
+    <div className="relative group overflow-hidden rounded-[32px] aspect-[4/5] glass-morphism border-white/5 hover:border-primary/40 transition-all duration-700">
+      <img src={img} className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 opacity-20 group-hover:opacity-40 scale-105 group-hover:scale-100" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#05070A] via-transparent to-transparent"></div>
 
-      <div className="relative z-10">
-        <div className="flex justify-between items-start mb-4">
-          <div className="p-3 bg-primary/20 rounded-2xl text-primary">{icon}</div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary/80 bg-primary/10 px-3 py-1 rounded-full">{tag}</span>
+      <div className="absolute inset-0 p-10 flex flex-col justify-end">
+        <div className="mb-6 flex justify-between items-center">
+          <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+            {icon}
+          </div>
+          <span className="text-[9px] font-black uppercase tracking-widest text-primary/80 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5">{tag}</span>
         </div>
-        <h3 className="text-2xl font-black mb-3 text-white">{title}</h3>
-        <p className="text-dim text-sm font-light leading-snug">{desc}</p>
+        <h3 className="text-2xl font-black mb-4 group-hover:text-primary transition-colors leading-tight">{title}</h3>
+        <p className="text-dim text-sm font-light leading-relaxed mb-4 line-clamp-2 group-hover:line-clamp-none transition-all duration-500">
+          {desc}
+        </p>
       </div>
     </div>
   );
@@ -339,21 +450,52 @@ function PlanCard({ name, price, features, highlight }) {
   return (
     <motion.div
       whileHover={{ y: -10 }}
-      className={`p-10 rounded-[32px] text-center border transition-all ${highlight ? 'bg-primary text-black border-primary font-bold shadow-2xl shadow-primary/20' : 'bg-white/5 border-white/10 hover:border-primary/40'}`}
+      className={`relative p-12 rounded-[40px] flex flex-col overflow-hidden transition-all duration-500 ${highlight
+          ? 'bg-gradient-to-b from-primary/10 to-transparent border-primary/30 shadow-[0_20px_60px_-15px_rgba(212,175,55,0.1)]'
+          : 'bg-white/5 border-white/5 hover:border-white/10'
+        } border`}
     >
-      <h3 className={`text-sm font-black uppercase tracking-[0.3em] mb-4 ${highlight ? 'text-black/60' : 'text-primary'}`}>{name}</h3>
-      <div className="text-4xl font-black mb-10">{price}</div>
-      <ul className="space-y-4 mb-10 text-sm opacity-80">
+      {highlight && (
+        <div className="absolute top-0 right-0 py-2 px-8 bg-primary text-black font-black text-[9px] tracking-[0.2em] uppercase rounded-bl-2xl">
+          MOST EXCLUSIVE
+        </div>
+      )}
+
+      <div className="mb-12">
+        <h3 className={`text-xs font-black uppercase tracking-[0.4em] mb-6 ${highlight ? 'text-primary' : 'text-white/60'}`}>{name}</h3>
+        <div className="flex items-baseline gap-2">
+          <span className="text-5xl font-black">{price}</span>
+          <span className="text-dim text-xs font-bold">USD</span>
+        </div>
+      </div>
+
+      <ul className="flex-1 space-y-6 mb-12">
         {features.map((f, i) => (
-          <li key={i} className="flex items-center justify-center gap-2">
-            <CheckCircleIcon className={highlight ? 'text-black/40' : 'text-primary'} /> {f}
+          <li key={i} className="flex items-center gap-4 text-sm font-medium text-white/80 group">
+            <div className={`w-1.5 h-1.5 rounded-full ${highlight ? 'bg-primary' : 'bg-white/30'} group-hover:scale-150 transition-transform`} />
+            {f}
           </li>
         ))}
       </ul>
-      <button className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${highlight ? 'bg-black text-white hover:scale-105 shadow-xl' : 'bg-white/10 hover:bg-primary hover:text-black'}`}>
-        Seleccionar Plan
+
+      <button className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all duration-500 ${highlight
+          ? 'btn-primary'
+          : 'bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20'
+        }`}>
+        SOLICITAR ACCESO
       </button>
     </motion.div>
+  );
+}
+
+function SocialIcon({ name }) {
+  return (
+    <div className="w-12 h-12 rounded-2xl border border-white/10 flex items-center justify-center hover:border-primary transition cursor-pointer text-white/20 hover:text-primary group relative">
+      <span className="text-xs font-bold font-mono tracking-tighter">{name.charAt(0)}</span>
+      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+        {name}
+      </div>
+    </div>
   );
 }
 

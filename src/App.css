@@ -15,7 +15,7 @@
   }
 
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-15px);
   }
 
   100% {
@@ -24,21 +24,75 @@
 }
 
 .float-animation {
-  animation: float 4s ease-in-out infinite;
+  animation: float 6s ease-in-out infinite;
 }
 
 section {
   position: relative;
-  z-index: 1;
+  z-index: 10;
 }
 
 /* Luxury card hover effects */
 .glass-morphism {
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .glass-morphism:hover {
   border-color: rgba(212, 175, 55, 0.4);
-  box-shadow: 0 0 30px rgba(212, 175, 55, 0.1);
-  transform: translateY(-5px);
+  box-shadow: 0 0 60px rgba(212, 175, 55, 0.1);
+}
+
+/* Scrollbar Customization */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.6);
+}
+
+/* Text Selection */
+::selection {
+  background: rgba(212, 175, 55, 0.3);
+  color: white;
+}
+
+/* Custom Gradients */
+.bg-gradient-gold {
+  background: radial-gradient(circle at center, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+}
+
+.shadow-glow {
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.8));
+}
+
+@keyframes pulse-slow {
+  0% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s infinite ease-in-out;
 }
