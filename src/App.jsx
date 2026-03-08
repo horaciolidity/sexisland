@@ -37,9 +37,9 @@ function App() {
       <header className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
         <div className="absolute inset-0 z-0 scale-105">
           <img
-            src="/luxury_private_island_cruise.png"
-            alt="Paradise Island"
-            className="w-full h-full object-cover opacity-40 blur-[2px]"
+            src="/model_vip.png"
+            alt="Paradise Island Luxury"
+            className="w-full h-full object-cover opacity-50 blur-[1px]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#05070A] via-[#05070A]/80 to-transparent"></div>
         </div>
@@ -104,31 +104,31 @@ function App() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <FeatureCard
             title="Isla Privada"
-            desc="Acceso exclusivo a un atolón privado con seguridad 24h."
+            desc="Acceso exclusivo a un atolón privado con seguridad 24h y libertad absoluta."
             icon={<Ship className="text-primary" />}
-            img="/luxury_private_island_cruise.png"
+            img="/model_vip.png"
             tag="Exclusividad"
           />
           <FeatureCard
             title="Villas de Lujo"
-            desc="Residencias ultra modernas frente al mar con jacuzzi privado."
+            desc="Residencias ultra modernas donde las 60 modelos atenderán cada deseo."
             icon={<Hotel className="text-primary" />}
             img="/villa.png"
             tag="Alojamiento"
           />
           <FeatureCard
-            title="Gastronomía VIP"
-            desc="Chef privado con menú gourmet de mariscos y cortes premium."
+            title="Gastronomía & Placer"
+            desc="Menú gourmet de mariscos y compañía de élite en cada cena."
             icon={<UtensilsCrossed className="text-primary" />}
             img="/dining.png"
             tag="Gourmet"
           />
           <FeatureCard
-            title="Concierge 24/7"
-            desc="Un asistente personal dedicado para cada uno de los 30 invitados."
+            title="Atención de Reinas"
+            desc="60 modelos internacionales seleccionadas para su entretenimiento personal."
             icon={<ShieldCheck className="text-primary" />}
             img="/vip_service.png"
-            tag="Atención"
+            tag="Servicio VIP"
           />
         </div>
       </section>
@@ -179,18 +179,37 @@ function App() {
             <PlanCard
               name="Diamond VIP"
               price="$15,000"
-              features={["Traslado Jet Privado", "Villa con Piscina", "Atención Personalizada", "Acceso Total Casino"]}
+              features={[
+                "Traslado en Jet Privado (First Class)",
+                "Villa privada con piscina infinita",
+                "Asistente personal 24/7",
+                "Acceso Ilimitado al Casino VIP",
+                "Mesa reservada en el escenario con DJs",
+                "Tratamiento Real con las 60 modelos"
+              ]}
               highlight
             />
             <PlanCard
-              name="Gold Guest"
+              name="Platinum Member"
               price="$10,000"
-              features={["Vuelo VIP", "Suite Mar", "Servicio Concierge", "Acceso Eventos"]}
+              features={[
+                "Vuelo Charter VVIP",
+                "Suite de Lujo frente al mar",
+                "Barra libre y menú gourmet",
+                "Acceso a todas las fiestas con 60 modelos",
+                "Crédito en el Casino de $1,000"
+              ]}
             />
             <PlanCard
               name="Private Group"
               price="Custom"
-              features={["Villas Privadas", "Seguridad Propia", "Menú Especial", "Evento Privado"]}
+              features={[
+                "Villas Privadas Exclusivas",
+                "Seguridad propia de alto nivel",
+                "Menú y Chef especializado",
+                "Fiesta Privada en Playa Secreta",
+                "Logística personalizada para su grupo"
+              ]}
             />
           </div>
         </div>
