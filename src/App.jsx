@@ -29,7 +29,8 @@ import {
   Flame,
   ChevronLeft,
   ChevronRight,
-  Tv
+  Tv,
+  Bed
 } from 'lucide-react';
 import GroupChat from './components/GroupChat';
 import PlaneVisual from './components/PlaneVisual';
@@ -67,7 +68,7 @@ function App() {
   const navigationLinks = [
     { name: 'Santuario', href: '#experiencia' },
     { name: 'Stars', href: '#modelos' },
-    { name: 'Logística', href: '#vuelo' },
+    { name: 'Suites VIP', href: '#suites' },
     { name: 'Galería', href: '#galeria' },
     { name: 'Precios', href: '#planes' },
   ];
@@ -139,8 +140,8 @@ function App() {
       <header className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 px-8">
         <div className="absolute inset-0 z-0">
           <img
-            src="/model_vip.png"
-            className="w-full h-full object-cover opacity-70 mix-blend-screen grayscale hover:grayscale-0 transition-all duration-[3s] scale-110 hover:scale-100"
+            src="/star_1.png"
+            className="w-full h-full object-cover opacity-70 mix-blend-screen transition-all duration-[3s] scale-110 hover:scale-100"
             alt="Elite Movie Star Reserve"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#05070A] via-[#05070A]/85 to-transparent"></div>
@@ -162,7 +163,7 @@ function App() {
 
             <p className="text-xl md:text-3xl text-white/50 max-w-5xl mx-auto mb-20 leading-relaxed font-light font-serif">
               "Treinta leyendas, sesenta diosas. <br />
-              Las estrellas del cine para adultos más famosas del mundo se rinden ante usted en el Santuario."
+              Las estrellas del cine para adultos más famosas del mundo se rinden ante usted."
             </p>
 
             <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
@@ -180,7 +181,7 @@ function App() {
         </div>
       </header>
 
-      {/* NEW: THE STARS SECTION - Explicitly requested with names */}
+      {/* THE STARS SECTION */}
       <section id="modelos" className="py-40 bg-black relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-8">
           <div className="text-center mb-24">
@@ -192,48 +193,54 @@ function App() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-            <StarCard
-              name="Sasha Grey"
-              img="/model_vip.png"
-              vibe="ADULT LEGEND"
-              desc="La leyenda absoluta. Carisma, inteligencia y audacia desbordante."
-            />
-            <StarCard
-              name="Angela White"
-              img="/vip_service.png"
-              vibe="THE QUEEN"
-              desc="Elegancia y poder en cada movimiento. Una presencia que domina el Santuario."
-            />
-            <StarCard
-              name="Riley Reid"
-              img="/luxury_casino_night_dj.png"
-              vibe="VIBRANT STAR"
-              desc="Energía pura e inagotable. La chispa que enciende las fiestas del Yate."
-            />
-            <StarCard
-              name="Lana Rhoades"
-              img="/dining.png"
-              vibe="ELITE CLASS"
-              desc="Belleza icónica seleccionada para los momentos más sofisticados."
-            />
-            <StarCard
-              name="Adriana Chechik"
-              img="/villa.png"
-              vibe="WILD SOUL"
-              desc="Audacia sin límites para quienes buscan el éxtasis extremo."
-            />
-            <StarCard
-              name="Abella Danger"
-              img="/hero-bg.png"
-              vibe="POWERFUL"
-              desc="Carisma magnético. Una estrella que nunca deja de sorprender."
-            />
+            <StarCard name="Sasha Grey" img="/star_1.png" vibe="ADULT LEGEND" desc="La leyenda absoluta. Carisma e inteligencia desbordante." />
+            <StarCard name="Angela White" img="/star_2.png" vibe="THE QUEEN" desc="Elegancia y poder. Una presencia que domina el Santuario." />
+            <StarCard name="Riley Reid" img="/star_3.png" vibe="VIBRANT STAR" desc="Energía pura. La chispa que enciende las fiestas del Yate." />
+            <StarCard name="Lana Rhoades" img="/star_4.png" vibe="ELITE CLASS" desc="Belleza icónica seleccionada para los momentos más sofisticados." />
+            <StarCard name="Adriana Chechik" img="/star_5.png" vibe="WILD SOUL" desc="Audacia sin límites para quienes buscan el éxtasis extremo." />
+            <StarCard name="Abella Danger" img="/star_6.png" vibe="POWERFUL" desc="Carisma magnético. Una estrella que nunca deja de sorprender." />
           </div>
+        </div>
+      </section>
 
-          <div className="mt-20 text-center">
-            <button className="px-12 py-6 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-black text-xs tracking-[0.5em] uppercase hover:bg-primary hover:text-black transition-all group scale-110 shadow-glow">
-              VER ELENCO COMPLETO (60 ESTRELLAS) <Tv size={18} className="inline ml-3 animate-pulse" />
-            </button>
+      {/* NEW: SUITES & BEDS SECTION */}
+      <section id="suites" className="py-40 bg-[#05070A] relative overflow-hidden border-y border-white/5">
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="flex flex-col lg:flex-row gap-24 items-center">
+            <div className="w-full lg:w-1/2 group">
+              <div className="relative aspect-[4/5] rounded-[60px] overflow-hidden border border-primary/20 shadow-glow">
+                <img src="/villa_suite.png" className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110" alt="Luxury Suite" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+                <div className="absolute bottom-10 left-10 p-10 glass-morphism rounded-[40px] border-primary/20">
+                  <Bed size={32} className="text-primary mb-4" />
+                  <h3 className="text-2xl font-black uppercase mb-2">Suites de Éxtasis</h3>
+                  <p className="text-sm text-white/40 italic font-serif">"Camas King-size con sedas importadas, diseñadas para el descanso... y mucho más."</p>
+                </div>
+              </div>
+            </div>
+            <div className="w-full lg:w-1/2">
+              <span className="section-tag">Alojamiento Imperial</span>
+              <h2 className="text-6xl md:text-8xl font-black mb-10 leading-[0.9] uppercase tracking-tighter">EL DESCANSO <br /><span className="gold-text">DEL GUERRERO</span></h2>
+              <p className="text-white/40 text-2xl font-light mb-12 leading-relaxed font-serif italic border-l-2 border-primary pl-8">
+                Nuestras villas privadas cuentan con las camas más lujosas del mundo. Colchones inteligentes de alta gama y lencería de satén que invitan a la máxima indulgencia junto a las estrellas.
+              </p>
+              <div className="space-y-6">
+                <div className="flex items-center gap-6 p-6 glass-morphism rounded-3xl border-primary/10">
+                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary"><Heart size={20} fill="currentColor" /></div>
+                  <div>
+                    <h4 className="text-sm font-black uppercase tracking-widest">King Custom Beds</h4>
+                    <p className="text-[10px] text-white/40 uppercase">Espacio infinito para sus fantasías.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-6 p-6 glass-morphism rounded-3xl border-primary/10">
+                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary"><Sparkles size={20} fill="currentColor" /></div>
+                  <div>
+                    <h4 className="text-sm font-black uppercase tracking-widest">Silk Experience</h4>
+                    <p className="text-[10px] text-white/40 uppercase">Tacto de seda en toda la habitación.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -243,28 +250,28 @@ function App() {
         <div className="flex flex-col lg:flex-row gap-24 items-center">
           <div className="w-full lg:w-1/2">
             <span className="section-tag">Indulgencia Suprema</span>
-            <h2 className="text-6xl md:text-8xl font-black mb-10 leading-[0.9] uppercase tracking-tighter">EL TRONO <br /><span className="gold-text">DEL PLACER</span></h2>
+            <h2 className="text-6xl md:text-8xl font-black mb-10 leading-[0.9] uppercase tracking-tighter">EL TRONO <br /><span className="gold-text">DEL REY</span></h2>
             <p className="text-white/40 text-2xl font-light mb-12 leading-relaxed font-serif italic">
-              Usted ha visto sus películas. Ahora lo verán a usted. Una semana donde el cine se vuelve realidad y usted es el único protagonista.
+              Usted ha visto sus películas. Ahora lo verán a usted. Una semana donde el cine se vuelve realidad.
             </p>
             <div className="grid grid-cols-2 gap-8">
-              <div className="p-8 glass-morphism rounded-3xl border-primary/10 hover:border-primary transition-all duration-500 group">
-                <Crown size={24} className="text-primary mb-4 group-hover:scale-125 transition-transform" />
-                <h4 className="font-black text-xs uppercase tracking-widest mb-2">Director's Cut</h4>
-                <p className="text-[10px] text-white/40 uppercase font-black">Cada escena es suya.</p>
+              <div className="p-8 glass-morphism rounded-3xl border-primary/10">
+                <Crown size={24} className="text-primary mb-4" />
+                <h4 className="font-black text-xs uppercase tracking-widest mb-2">Soberanía</h4>
+                <p className="text-[10px] text-white/40 uppercase font-black">Escenas a su medida.</p>
               </div>
-              <div className="p-8 glass-morphism rounded-3xl border-primary/10 hover:border-primary transition-all duration-500 group">
-                <Zap size={24} className="text-primary mb-4 group-hover:scale-125 transition-transform" />
-                <h4 className="font-black text-xs uppercase tracking-widest mb-2">Non-Stop action</h4>
-                <p className="text-[10px] text-white/40 uppercase font-black">24 horas de adrenalina.</p>
+              <div className="p-8 glass-morphism rounded-3xl border-primary/10">
+                <Zap size={24} className="text-primary mb-4" />
+                <h4 className="font-black text-xs uppercase tracking-widest mb-2">Acción</h4>
+                <p className="text-[10px] text-white/40 uppercase font-black">24h de adrenalina.</p>
               </div>
             </div>
           </div>
-          <div className="w-full lg:w-1/2 relative">
-            <div className="absolute -inset-4 bg-primary/10 blur-[100px] rounded-full"></div>
-            <div className="relative z-10 aspect-[4/5] rounded-[60px] overflow-hidden border border-white/10 shadow-glow">
-              <img src="/model_vip.png" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" alt="Santuario Reserve" />
-              <div className="absolute inset-x-8 bottom-8 p-10 glass-morphism rounded-[40px] border-primary/20">
+          <div className="w-full lg:w-1/2 relative group">
+            <div className="aspect-[4/5] rounded-[60px] overflow-hidden border border-white/10 shadow-glow relative transform group-hover:rotate-1 transition-transform duration-700">
+              <img src="/star_1.png" className="w-full h-full object-cover transition-all duration-1000" alt="Resort" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+              <div className="absolute bottom-10 left-10 right-10 p-10 glass-morphism rounded-[40px] border-primary/20">
                 <p className="text-xl font-bold italic font-serif leading-tight">"En el cine hay cortes. En el Santuario, el placer nunca se detiene."</p>
               </div>
             </div>
@@ -282,12 +289,12 @@ function App() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <GalleryCard img="/luxury_casino_night_dj.png" title="Casino High-Stakes" tag="NOCHE" />
-            <GalleryCard img="/luxury_private_island_cruise.png" title="Yate de las Estrellas" tag="ACCIÓN" />
-            <GalleryCard img="/dining.png" title="Banquetes Michelin" tag="GOURMET" />
-            <GalleryCard img="/villa.png" title="Santuarios Privados" tag="RELAX" />
-            <GalleryCard img="/jet_interior.png" title="Logística Imperial" tag="VUELO" />
-            <GalleryCard img="/vip_service.png" title="Tratamiento VIP" tag="EXCLUSIVO" />
+            <GalleryCard img="/star_2.png" title="Casino High-Stakes" tag="NOCHE" />
+            <GalleryCard img="/star_3.png" title="Yate de las Estrellas" tag="ACCIÓN" />
+            <GalleryCard img="/star_4.png" title="Banquetes Michelin" tag="GOURMET" />
+            <GalleryCard img="/villa_suite.png" title="Santuarios Privados" tag="RELAX" />
+            <GalleryCard img="/star_5.png" title="Logística Imperial" tag="VUELO" />
+            <GalleryCard img="/star_6.png" title="Tratamiento VIP" tag="EXCLUSIVO" />
           </div>
         </div>
       </section>
@@ -295,11 +302,7 @@ function App() {
       {/* Plane Visual */}
       <section id="vuelo" className="py-40 bg-black">
         <div className="max-w-5xl mx-auto text-center mb-24">
-          <span className="section-tag">Privacidad Total</span>
           <h2 className="text-6xl md:text-9xl font-black mb-10 gold-text italic tracking-tighter italic-luxury font-serif leading-none">VUELO SOBERANO</h2>
-          <p className="text-white/40 text-xl font-light italic font-serif max-w-2xl mx-auto border-l border-primary/30 pl-10 py-4 text-left">
-            "Treinta leyendas cruzan el cielo. Su identidad está protegida por protocolos militares desde el despegue."
-          </p>
         </div>
         <PlaneVisual />
       </section>
@@ -316,14 +319,14 @@ function App() {
           <PlanCard
             name="Diamond Imperial"
             price="$7,500"
-            features={["Jet Privado Global First", "Villa Piscina Infinita", "Concierge Estrellas 24/7", "Casino Unlimited Pass", "Mesa Stage con Estrellas", "Priority Casting Selection"]}
+            features={["Jet Privado Global First", "Villa Piscina Infinita", "Concierge Estrellas 24/7", "Casino Unlimited Pass", "Stage VIP con Estrellas", "Selection Priority"]}
             highlight
             onSelect={() => user ? setShowUserPanel(true) : setShowLogin(true)}
           />
           <PlanCard
             name="Sovereign Party"
             price="Custom"
-            features={["Residencia Privada", "Cuerpo de Seguridad Anónimo", "Chef & Mixólogo Privado", "Fiesta Privada Isla", "Logística Estelar Ilimitada"]}
+            features={["Residencia Privada", "Seguridad Particular", "Chef & Mixólogo Privado", "Fiesta Privada Isla", "Logística Estelar Ilimitada"]}
             onSelect={() => user ? setShowUserPanel(true) : setShowLogin(true)}
           />
         </div>
@@ -357,19 +360,9 @@ function App() {
             <div className="text-4xl font-black gold-text mb-10 italic-luxury font-serif">SANTUARIO</div>
             <p className="text-white/20 text-2xl max-w-md font-light italic leading-snug">"Donde las fantasías digitales se vuelven realidad palpable."</p>
           </div>
-          <div className="flex flex-wrap gap-24">
-            <div>
-              <h4 className="font-black text-[10px] text-primary uppercase tracking-[0.4em] mb-10">Membresía</h4>
-              <ul className="space-y-6 text-xs font-black text-white/30 uppercase tracking-[0.2em]">
-                <li><a href="#experiencia" className="hover:text-white transition">Filosofía</a></li>
-                <li><a href="#galeria" className="hover:text-white transition">Cine</a></li>
-                <li><a href="#planes" className="hover:text-white transition">Reservas</a></li>
-              </ul>
-            </div>
-          </div>
         </div>
         <div className="max-w-7xl mx-auto pt-20 border-t border-white/5 mt-20 flex justify-between text-[10px] font-black text-white/10 uppercase tracking-[0.5em]">
-          <span>© 2026 THE SANTUARIO GROUP | ADULT RESERVE DEPT.</span>
+          <span>© 2026 THE SANTUARIO GROUP | ADULT RESERVE</span>
           <span>IDENTITY PROTECTED</span>
         </div>
       </footer>
@@ -417,23 +410,22 @@ function PlanCard({ name, price, features, highlight, onSelect }) {
           : 'bg-black border-white/5 hover:border-white/20'
         } border`}
     >
-      {highlight && <div className="absolute top-0 right-0 py-3 px-10 bg-primary text-black font-black text-[10px] tracking-[0.3em] uppercase rounded-bl-[30px] flex items-center gap-2">PLATINUM CHOICE</div>}
+      {highlight && <div className="absolute top-0 right-0 py-3 px-10 bg-primary text-black font-black text-[10px] tracking-[0.3em] uppercase rounded-bl-[30px]">DIAMOND CHOICE</div>}
       <div className="mb-14">
         <h3 className={`text-[10px] font-black uppercase tracking-[0.5em] mb-8 ${highlight ? 'text-primary' : 'text-white/40'}`}>{name}</h3>
         <div className="flex items-baseline gap-4">
           <span className="text-7xl font-black italic-luxury font-serif">{price}</span>
-          <span className="text-white/30 text-xs font-black">USD</span>
         </div>
       </div>
       <ul className="flex-1 space-y-7 mb-16">
         {features.map((f, i) => (
-          <li key={i} className="flex items-center gap-6 text-sm font-medium text-white/50 group">
-            <div className={`w-1.5 h-1.5 rounded-full ${highlight ? 'bg-primary shadow-glow' : 'bg-white/20'}`} />
+          <li key={i} className="flex items-center gap-6 text-sm font-medium text-white/50">
+            <div className={`w-1.5 h-1.5 rounded-full ${highlight ? 'bg-primary' : 'bg-white/20'}`} />
             {f}
           </li>
         ))}
       </ul>
-      <button onClick={onSelect} className={`w-full py-6 rounded-3xl font-black text-xs uppercase tracking-[0.4em] transition-all relative overflow-hidden ${highlight ? 'bg-primary text-black' : 'bg-white/5 border border-white/10 text-white'}`}>
+      <button onClick={onSelect} className={`w-full py-6 rounded-3xl font-black text-xs uppercase tracking-[0.4em] transition-all relative overflow-hidden ${highlight ? 'bg-primary text-black shadow-glow' : 'bg-white/5 border border-white/10 text-white'}`}>
         RESERVAR ACCESO
       </button>
     </motion.div>
