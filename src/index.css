@@ -75,8 +75,30 @@ h3 {
   }
 }
 
-.pulse-gold {
-  animation: pulse-gold 2s infinite;
+.plane-nose-glow {
+  box-shadow: 0 -20px 50px -10px rgba(0, 229, 255, 0.1);
+}
+
+.aisle-line {
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.05) 50%, transparent);
+}
+
+.seat-confirmed {
+  animation: seat-pulse 2s infinite ease-in-out;
+}
+
+@keyframes seat-pulse {
+  0% {
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.7);
+  }
+
+  100% {
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+  }
 }
 
 .btn-primary {
