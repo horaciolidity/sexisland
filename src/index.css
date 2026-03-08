@@ -1,11 +1,10 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
 
 @theme {
   --color-primary: #D4AF37;
   --color-dim: #A0A0A0;
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
 
 :root {
   --primary: #D4AF37;
