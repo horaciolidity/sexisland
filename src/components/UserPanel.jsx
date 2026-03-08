@@ -19,7 +19,8 @@ import {
     RefreshCw,
     LogOut,
     Zap,
-    Globe
+    Globe,
+    Lock
 } from 'lucide-react';
 
 const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
@@ -27,6 +28,8 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
     const [copied, setCopied] = useState(false);
     const [connecting, setConnecting] = useState(false);
     const [connectedWallet, setConnectedWallet] = useState(null);
+    const [paying, setPaying] = useState(false);
+    const [payStatus, setPayStatus] = useState(null); // 'success', 'error'
 
     const walletAddress = "0xBAeaDE80A2A1064E4F8f372cd2ADA9a00daB4BBE";
 
@@ -36,19 +39,61 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const connectMultiWallet = () => {
-        setConnecting(true);
-        // Simulation
-        setTimeout(() => {
-            setConnecting(false);
-            setConnectedWallet("0x742...f44e");
-        }, 2000);
+    const connectWallet = async () => {
+        if (window.ethereum) {
+            setConnecting(true);
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                setConnectedWallet(accounts[0]);
+                setConnecting(false);
+            } catch (error) {
+                console.error("User denied account access", error);
+                setConnecting(false);
+            }
+        } else {
+            alert("Por favor instale MetaMask u otra wallet compatible.");
+        }
+    };
+
+    const handleAutomaticPayment = async (amount) => {
+        if (!connectedWallet) {
+            await connectWallet();
+            return;
+        }
+
+        setPaying(true);
+        setPayStatus(null);
+
+        try {
+            // Basic ETH/Native transfer since USDC contract interactions vary by chain
+            // Converting amount to Hex for raw eth_sendTransaction
+            // 5200 USD placeholder in Native for demo purposes if not on a specific network
+            // Value in Wei (approximate for demo)
+            const transactionParameters = {
+                to: walletAddress,
+                from: connectedWallet,
+                value: '0x38D7EA4C68000', // Small amount for demo safety (0.001 ETH)
+            };
+
+            const txHash = await window.ethereum.request({
+                method: 'eth_sendTransaction',
+                params: [transactionParameters],
+            });
+
+            console.log("Transaction Hash:", txHash);
+            setPayStatus('success');
+            setPaying(false);
+        } catch (error) {
+            console.error("Payment failed", error);
+            setPayStatus('error');
+            setPaying(false);
+        }
     };
 
     const tabs = [
         { id: 'summary', name: 'Resumen', icon: <UserIcon size={16} /> },
         { id: 'travel', name: 'Viaje', icon: <Plane size={16} /> },
-        { id: 'payments', name: 'Web3 Pay', icon: <Zap size={16} /> },
+        { id: 'payments', name: 'Pago Auto', icon: <Zap size={16} /> },
         { id: 'settings', name: 'Cuenta', icon: <Settings size={16} /> },
     ];
 
@@ -63,15 +108,11 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
                         className="w-full md:w-[600px] h-full md:h-[95vh] bg-[#0A0E14] border-l border-white/10 flex flex-col relative overflow-hidden md:rounded-3xl shadow-[0_0_100px_rgba(212,175,55,0.1)]"
                     >
-                        {/* Background Decor */}
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 blur-[120px] -z-10"></div>
-                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 blur-[100px] -z-10"></div>
-
                         {/* Header */}
                         <div className="p-8 border-b border-white/5 flex justify-between items-center bg-black/20">
                             <div className="flex items-center gap-4">
-                                <div className="relative group cursor-pointer" onClick={() => setActiveTab('settings')}>
-                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-transparent border border-primary/30 flex items-center justify-center transition-all group-hover:border-primary">
+                                <div className="relative group">
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-transparent border border-primary/30 flex items-center justify-center">
                                         <UserIcon size={32} className="text-primary" />
                                     </div>
                                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-[#0A0E14] flex items-center justify-center shadow-lg">
@@ -79,11 +120,11 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                                     </div>
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-black tracking-tighter text-white">VIP: {user?.name?.toUpperCase() || 'MIEMBRO'}</h2>
+                                    <h2 className="text-xl font-black tracking-tighter text-white uppercase italic-luxury">{user?.name || 'GUEST'}</h2>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[10px] text-primary font-black tracking-[0.3em] uppercase">Membresía Platinum</span>
+                                        <span className="text-[10px] text-primary font-black tracking-[0.3em] uppercase">Platinum Reserve</span>
                                         <div className="w-1 h-1 bg-white/20 rounded-full"></div>
-                                        <span className="text-[9px] text-white/40 font-bold uppercase">ID: SX-2026-X8B9</span>
+                                        <span className="text-[9px] text-white/40 font-bold uppercase">Pass Verified</span>
                                     </div>
                                 </div>
                             </div>
@@ -92,16 +133,16 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                             </button>
                         </div>
 
-                        {/* New Navigation Design */}
+                        {/* Navigation */}
                         <div className="flex px-6 pt-4 border-b border-white/5 gap-4 overflow-x-auto no-scrollbar bg-black/10">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`flex flex-col items-center gap-2 px-4 pb-4 transition-all relative group ${activeTab === tab.id ? 'text-primary opacity-100' : 'text-white/30 hover:text-white/60 opacity-60 hover:opacity-100'
+                                    className={`flex flex-col items-center gap-2 px-4 pb-4 transition-all relative group ${activeTab === tab.id ? 'text-primary' : 'text-white/30 hover:text-white/60'
                                         }`}
                                 >
-                                    <div className={`p-2 rounded-xl transition-all ${activeTab === tab.id ? 'bg-primary/20 scale-110 shadow-lg' : 'group-hover:bg-white/5'}`}>
+                                    <div className={`p-2 rounded-xl transition-all ${activeTab === tab.id ? 'bg-primary/20 scale-110 shadow-lg' : ''}`}>
                                         {tab.icon}
                                     </div>
                                     <span className="text-[9px] font-black uppercase tracking-tighter">{tab.name}</span>
@@ -115,111 +156,52 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                         {/* Content Area */}
                         <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
                             {activeTab === 'summary' && (
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                                    {/* Status Cards */}
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-6 glass-morphism border-primary/10 rounded-3xl relative overflow-hidden group">
-                                            <div className="absolute top-0 right-0 p-2 opacity-5"><Wallet size={40} /></div>
-                                            <div className="text-[9px] text-primary font-black uppercase mb-2 tracking-widest">Balance Pases</div>
-                                            <div className="text-2xl font-black">0.00 USDC</div>
-                                            <div className="text-[8px] text-white/20 font-bold mt-2 uppercase">Historial Vacío</div>
+                                        <div className="p-6 glass-morphism border-primary/10 rounded-3xl">
+                                            <div className="text-[9px] text-primary font-black uppercase mb-2 tracking-widest opacity-60">Pass Tokens</div>
+                                            <div className="text-2xl font-black">{payStatus === 'success' ? '1.0' : '0.0'}</div>
+                                            <div className="text-[8px] text-white/20 font-bold mt-2 uppercase">Credencial SX-26</div>
                                         </div>
-                                        <div className="p-6 glass-morphism border-primary/10 rounded-3xl relative overflow-hidden group">
-                                            <div className="absolute top-0 right-0 p-2 opacity-5"><Clock size={40} /></div>
-                                            <div className="text-[9px] text-primary font-black uppercase mb-2 tracking-widest">Días Restantes</div>
-                                            <div className="text-2xl font-black">45 Días</div>
-                                            <div className="text-[8px] text-white/20 font-bold mt-2 uppercase">Salida: Mayo 2026</div>
+                                        <div className="p-6 glass-morphism border-primary/10 rounded-3xl">
+                                            <div className="text-[9px] text-primary font-black uppercase mb-2 tracking-widest opacity-60">Logística</div>
+                                            <div className="text-2xl font-black">70%</div>
+                                            <div className="text-[8px] text-white/20 font-bold mt-2 uppercase flex items-center gap-1"><RefreshCw size={8} /> Sincronizando</div>
                                         </div>
                                     </div>
 
-                                    {/* VIP Passport Card - Ultra Black Design */}
-                                    <div className="relative p-10 rounded-[40px] bg-black border border-white/5 overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]">
-                                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary opacity-10 blur-[100px] rounded-full"></div>
-                                        <div className="absolute top-10 right-10 rotate-12 opacity-5">
+                                    <div className="relative p-10 rounded-[40px] bg-black border border-white/5 overflow-hidden shadow-2xl">
+                                        <div className="absolute top-10 right-10 rotate-12 opacity-5 scale-150">
                                             <Globe size={150} />
                                         </div>
                                         <div className="relative z-10">
                                             <div className="flex justify-between items-start mb-16">
                                                 <div>
-                                                    <div className="text-2xl font-black italic gold-text tracking-tighter mb-1">VIP PASSPORT</div>
-                                                    <div className="text-[7px] text-white/30 uppercase tracking-[0.5em] font-black">Santuario Privado Group</div>
+                                                    <div className="text-2xl font-black italic gold-text tracking-tighter mb-1 font-serif">SANTUARIO VIP</div>
+                                                    <div className="text-[7px] text-white/30 uppercase tracking-[0.5em] font-black">Membership Card</div>
                                                 </div>
-                                                <div className="px-4 py-1.5 bg-primary/20 border border-primary/40 text-primary text-[10px] font-black rounded-lg uppercase tracking-widest">
+                                                <div className="px-4 py-1.5 bg-primary/20 border border-primary/40 text-primary text-[10px] font-black rounded-lg uppercase">
                                                     PLATINUM
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-2 gap-y-8">
                                                 <div>
-                                                    <div className="text-[8px] text-white/20 uppercase font-black tracking-widest mb-2">Member Name</div>
-                                                    <div className="text-sm font-black text-white">{user?.name?.toUpperCase() || 'EXCLUSIVE GUEST'}</div>
+                                                    <div className="text-[8px] text-white/20 uppercase font-black tracking-widest mb-2">Member</div>
+                                                    <div className="text-sm font-black text-white">{user?.name?.toUpperCase() || 'MIEMBRO VIP'}</div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <div className="text-[8px] text-white/20 uppercase font-black tracking-widest mb-2">Class Access</div>
-                                                    <div className="text-sm font-black text-primary">FIRST CLASS LUXURY</div>
-                                                </div>
-                                                <div>
-                                                    <div className="text-[8px] text-white/20 uppercase font-black tracking-widest mb-2">Issue Date</div>
-                                                    <div className="text-[11px] font-mono text-white/60 uppercase">MARCH 2026</div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="text-[8px] text-white/20 uppercase font-black tracking-widest mb-2">Verification</div>
-                                                    <div className="flex items-center justify-end gap-2 text-[11px] font-black text-green-500">
-                                                        <Shield size={10} /> SECURE
-                                                    </div>
+                                                    <div className="text-[8px] text-white/20 uppercase font-black tracking-widest mb-2">Access Level</div>
+                                                    <div className="text-sm font-black text-primary">FULL UNRESTRICTED</div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </motion.div>
-                            )}
 
-                            {activeTab === 'travel' && (
-                                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-                                    <div className="p-8 glass-morphism border-white/5 rounded-3xl group">
-                                        <h3 className="text-sm font-black text-primary mb-8 flex items-center justify-between">
-                                            <span className="flex items-center gap-3"><Plane size={20} /> MANIFIESTO DE VIAJE</span>
-                                            <span className="text-[9px] px-3 py-1 bg-white/5 rounded-full text-white/40 uppercase">Vuelo SX-700</span>
-                                        </h3>
-
-                                        <div className="space-y-6">
-                                            <div className="flex items-center justify-between border-b border-white/5 pb-6">
-                                                <div>
-                                                    <div className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Carnet / Pasaporte</div>
-                                                    <div className="text-sm font-black text-red-500 flex items-center gap-2">
-                                                        <AlertTriangle size={14} /> PENDIENTE COMPLETAR
-                                                    </div>
-                                                </div>
-                                                <button className="p-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-white/60 transition-all">
-                                                    <Camera size={16} />
-                                                </button>
-                                            </div>
-
-                                            <div className="flex items-center justify-between border-b border-white/5 pb-6">
-                                                <div>
-                                                    <div className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Detalles de Vuelo</div>
-                                                    <div className="text-sm font-black italic text-white/30">Auto-completando por disponibilidad...</div>
-                                                </div>
-                                                <RefreshCw size={16} className="text-primary animate-spin-slow opacity-20" />
-                                            </div>
-
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex-1">
-                                                    <div className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-2 text-center">Itinerario de Salida</div>
-                                                    <div className="flex items-center justify-center gap-6">
-                                                        <div className="text-center">
-                                                            <div className="text-xl font-black">MAY 15</div>
-                                                            <div className="text-[8px] text-white/40">2026</div>
-                                                        </div>
-                                                        <div className="h-[1px] w-12 bg-primary/20 relative">
-                                                            <div className="absolute -top-1.5 left-1/2 -translate-x-1/2"><Plane size={12} className="text-primary" /></div>
-                                                        </div>
-                                                        <div className="text-center opacity-40">
-                                                            <div className="text-xl font-black italic">-- --</div>
-                                                            <div className="text-[8px] text-white/40 uppercase">Santuario</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                    <div className="space-y-4">
+                                        <h4 className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Timeline Reciente</h4>
+                                        <div className="space-y-3">
+                                            <ActivityItem icon={<Lock size={12} />} text="Autenticación Biométrica Exitosa" time="Justo ahora" />
+                                            <ActivityItem icon={<Zap size={12} />} text="Conexión Web3 Gate detectada" time="Hace 2 min" />
                                         </div>
                                     </div>
                                 </motion.div>
@@ -227,130 +209,105 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
 
                             {activeTab === 'payments' && (
                                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
-                                    <div className="text-center p-10 glass-morphism border-primary/20 rounded-[40px] relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 p-4 opacity-5"><Link2 size={60} className="rotate-45" /></div>
+                                    <div className="text-center p-10 glass-morphism border-primary/20 rounded-[40px] relative overflow-hidden bg-gradient-to-b from-primary/5 to-transparent">
+                                        <div className="absolute top-0 right-0 p-4 opacity-10"><Zap size={60} className="text-primary" /></div>
 
-                                        <p className="text-[10px] text-primary font-black uppercase tracking-[0.4em] mb-4">Secure Web3 Gateway</p>
-                                        <h3 className="text-2xl font-black text-white mb-2 italic tracking-tighter uppercase font-mono">Multi-Wallet Connect</h3>
-                                        <p className="text-[11px] text-white/40 max-w-xs mx-auto mb-10">Pague su membresía en USDC a través de nuestra pasarela multi-cadena segura.</p>
+                                        <h3 className="text-2xl font-black text-white mb-2 italic tracking-tighter uppercase font-mono">PAGO AUTOMÁTICO</h3>
+                                        <p className="text-[11px] text-white/40 max-w-xs mx-auto mb-10">Confirme su membresía Platinum ($5,200) con un solo clic desde su wallet.</p>
 
-                                        {connectedWallet ? (
-                                            <div className="space-y-4 mb-8">
-                                                <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex items-center justify-center gap-3">
-                                                    <CheckCircle2 size={20} className="text-green-500" />
-                                                    <div className="text-left">
-                                                        <div className="text-[8px] font-black text-green-500 uppercase tracking-widest">Conectado</div>
-                                                        <div className="text-xs font-mono font-bold text-white">{connectedWallet}</div>
-                                                    </div>
-                                                </div>
-                                                <button className="text-[9px] text-white/20 hover:text-white uppercase font-black tracking-widest transition">Desconectar</button>
-                                            </div>
-                                        ) : (
+                                        {!connectedWallet ? (
                                             <button
-                                                onClick={connectMultiWallet}
+                                                onClick={connectWallet}
                                                 disabled={connecting}
-                                                className="w-full btn-primary py-5 rounded-2xl mb-8 flex items-center justify-center gap-3 text-[10px] shadow-[0_15px_30px_rgba(212,175,55,0.2)]"
+                                                className="w-full btn-primary py-6 rounded-2xl flex items-center justify-center gap-3 text-sm"
                                             >
-                                                {connecting ? (
-                                                    <>
-                                                        <RefreshCw size={18} className="animate-spin" /> PROCESANDO ENLACE...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Cpu size={18} /> CONECTAR WALLET (ALL NETS)
-                                                    </>
-                                                )}
+                                                {connecting ? <RefreshCw className="animate-spin" /> : <Wallet size={20} />}
+                                                CONECTAR WALLLET PARA PAGAR
                                             </button>
+                                        ) : (
+                                            <div className="space-y-6">
+                                                <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                                            <CheckCircle2 size={16} className="text-primary" />
+                                                        </div>
+                                                        <div className="text-left">
+                                                            <div className="text-[8px] text-white/40 uppercase">Wallet Conectada</div>
+                                                            <div className="text-[10px] font-mono font-bold text-white">{connectedWallet.slice(0, 6)}...{connectedWallet.slice(-4)}</div>
+                                                        </div>
+                                                    </div>
+                                                    <button onClick={() => setConnectedWallet(null)} className="text-[8px] text-red-500 font-black uppercase">Cambiar</button>
+                                                </div>
+
+                                                {payStatus === 'success' ? (
+                                                    <motion.div
+                                                        initial={{ scale: 0.8, opacity: 0 }}
+                                                        animate={{ scale: 1, opacity: 1 }}
+                                                        className="p-8 bg-green-500/20 border border-green-500/40 rounded-3xl text-center"
+                                                    >
+                                                        <CheckCircle2 size={48} className="text-green-500 mx-auto mb-4" />
+                                                        <h4 className="text-xl font-black text-white mb-2 uppercase">PAGO RECIBIDO</h4>
+                                                        <p className="text-xs text-green-500 font-bold tracking-widest">SU INVITACIÓN ESTÁ SIENDO PROCESADA</p>
+                                                    </motion.div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleAutomaticPayment(5200)}
+                                                        disabled={paying}
+                                                        className="w-full btn-primary py-6 rounded-2xl flex items-center justify-center gap-3 text-base shadow-[0_20px_50px_rgba(212,175,55,0.4)]"
+                                                    >
+                                                        {paying ? <RefreshCw className="animate-spin" /> : <Zap size={20} fill="currentColor" />}
+                                                        {paying ? 'PROCESANDO EN BLOCKCHAIN...' : 'PAGAR $5,200 (USDC/ETH)'}
+                                                    </button>
+                                                )}
+                                            </div>
                                         )}
 
-                                        <div className="relative group p-6 bg-white/5 border border-white/5 rounded-3xl text-left">
-                                            <div className="text-[8px] text-primary font-black uppercase tracking-[0.3em] mb-3">Dirección de Depósito (USDC Only)</div>
-                                            <div className="flex items-center justify-between gap-4">
-                                                <span className="text-[11px] font-mono text-white/60 truncate selection:bg-primary/40">{walletAddress}</span>
-                                                <button
-                                                    onClick={copyToClipboard}
-                                                    className="p-3 bg-primary text-black rounded-xl hover:scale-110 active:scale-95 transition-all shadow-lg"
-                                                >
+                                        <div className="mt-8 pt-8 border-t border-white/5 text-left">
+                                            <div className="text-[8px] text-white/20 font-black uppercase tracking-[0.4em] mb-4 text-center">O depósito manual</div>
+                                            <div className="bg-black/50 border border-white/5 p-4 rounded-2xl flex items-center justify-between gap-4">
+                                                <span className="text-[10px] font-mono text-white/40 truncate">{walletAddress}</span>
+                                                <button onClick={copyToClipboard} className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all">
                                                     {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
                                                 </button>
                                             </div>
-                                            {copied && (
-                                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[8px] font-black text-primary uppercase">
-                                                    Dirección Copiada
-                                                </motion.div>
-                                            )}
                                         </div>
-
-                                        <div className="mt-8 flex justify-center items-center gap-6 grayscale opacity-30">
-                                            <div className="flex flex-col items-center">
-                                                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black">M</div>
-                                                <span className="text-[6px] mt-1 uppercase font-bold">Metamask</span>
-                                            </div>
-                                            <div className="flex flex-col items-center">
-                                                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black italic">CP</div>
-                                                <span className="text-[6px] mt-1 uppercase font-bold">Coinbase</span>
-                                            </div>
-                                            <div className="flex flex-col items-center">
-                                                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black">WC</div>
-                                                <span className="text-[6px] mt-1 uppercase font-bold">Connect</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="p-8 border border-white/5 rounded-[32px] bg-white/[0.02]">
-                                        <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                                            <Shield size={14} /> SEGURIDAD CRYPTO
-                                        </h4>
-                                        <ul className="space-y-4">
-                                            <li className="flex gap-4 text-xs font-light text-white/60 leading-relaxed">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                                                Aceptamos USDC en Ethereum (ERC20), Polygon, BSC y Solana.
-                                            </li>
-                                            <li className="flex gap-4 text-xs font-light text-white/60 leading-relaxed">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                                                Los pases se acreditan automáticamente tras la detección en cadena.
-                                            </li>
-                                            <li className="flex gap-4 text-xs font-light text-white/60 leading-relaxed">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                                                Servicio de escrow privado para grupos (Mínimo $20,000).
-                                            </li>
-                                        </ul>
                                     </div>
                                 </motion.div>
+                            )}
+
+                            {activeTab === 'travel' && (
+                                <div className="grid grid-cols-1 gap-6">
+                                    <div className="p-8 glass-morphism border-white/5 rounded-[40px] text-center">
+                                        <Plane size={48} className="mx-auto mb-6 text-primary opacity-20" />
+                                        <h3 className="text-xl font-black mb-4 italic-luxury">DETALLES DE VUELO</h3>
+                                        <div className="space-y-4 max-w-sm mx-auto">
+                                            <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl">
+                                                <span className="text-[10px] font-black text-white/40 uppercase">Estatus</span>
+                                                <span className="text-[10px] font-black text-primary uppercase">Pendiente de Pago</span>
+                                            </div>
+                                            <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl">
+                                                <span className="text-[10px] font-black text-white/40 uppercase">Carnet</span>
+                                                <span className="text-[10px] font-black text-red-500 uppercase flex items-center gap-2"><AlertTriangle size={12} /> Requiere Subida</span>
+                                            </div>
+                                        </div>
+                                        <button className="btn-secondary w-full mt-8 py-5 rounded-2xl text-[10px]">SUBIR DOCUMENTACIÓN <Camera size={14} className="inline ml-2" /></button>
+                                    </div>
+                                </div>
                             )}
 
                             {activeTab === 'settings' && (
-                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                                    <div className="p-6 glass-morphism border-white/5 rounded-3xl space-y-4">
-                                        <div className="flex justify-between items-center py-2 border-b border-white/5">
-                                            <span className="text-xs text-white/40">Notificaciones PUSH</span>
-                                            <div className="w-8 h-4 bg-primary rounded-full relative"><div className="absolute right-0.5 top-0.5 w-3 h-3 bg-black rounded-full"></div></div>
-                                        </div>
-                                        <div className="flex justify-between items-center py-2">
-                                            <span className="text-xs text-white/40">Autenticación 2FA</span>
-                                            <span className="text-[9px] text-green-500 font-black">ACTIVA</span>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        onClick={onLogout}
-                                        className="w-full p-5 bg-red-500/5 border border-red-500/20 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-red-500/10 transition-all flex items-center justify-center gap-3 mt-12"
-                                    >
+                                <div className="space-y-6">
+                                    <button onClick={onLogout} className="w-full btn-secondary text-red-500 border-red-500/20 hover:bg-red-500/10 py-5 rounded-2xl flex items-center justify-center gap-3">
                                         <LogOut size={16} /> CERRAR SESIÓN DE SEGURIDAD
                                     </button>
-
-                                    <p className="text-[8px] text-white/20 text-center font-bold items-center gap-1 flex justify-center">
-                                        <Lock size={10} /> PROTEGIDO POR SANTUARIO CRYPTO-TRUST™
-                                    </p>
-                                </motion.div>
+                                </div>
                             )}
                         </div>
 
-                        {/* Footer */}
-                        <div className="p-8 border-t border-white/5 bg-black/60">
-                            <div className="flex justify-between items-center text-[9px] text-white/20 font-black uppercase tracking-[0.4em]">
-                                <span>Member Status: ALPHA</span>
-                                <span className="flex items-center gap-2 text-primary/30"><Cpu size={12} className="animate-pulse" /> V-1.0.8</span>
+                        <div className="p-8 border-t border-white/5 bg-black/80">
+                            <div className="flex justify-between items-center text-[9px] text-white/10 font-black tracking-[0.5em]">
+                                <span>SANTUARIO OS V-1.2</span>
+                                <span>SECURE NODE ACTIVE</span>
                             </div>
                         </div>
                     </motion.div>
@@ -359,5 +316,15 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
         </AnimatePresence>
     );
 };
+
+const ActivityItem = ({ icon, text, time }) => (
+    <div className="flex items-center gap-4 p-4 bg-white/[0.02] border border-white/5 rounded-2xl group hover:border-primary/20 transition-all">
+        <div className="p-2 bg-primary/10 rounded-lg text-primary">{icon}</div>
+        <div className="flex-1">
+            <div className="text-[10px] font-black text-white/80 group-hover:text-white transition-all uppercase tracking-tighter">{text}</div>
+            <div className="text-[8px] text-white/20 font-bold uppercase">{time}</div>
+        </div>
+    </div>
+);
 
 export default UserPanel;
