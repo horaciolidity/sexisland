@@ -16,16 +16,20 @@ import {
   LogIn as LogInIcon,
   LogOut as LogOutIcon,
   Menu,
-  X as XIcon
+  X as XIcon,
+  CreditCard,
+  Wallet
 } from 'lucide-react';
 import GroupChat from './components/GroupChat';
 import PlaneVisual from './components/PlaneVisual';
 import LoginModal from './components/LoginModal';
+import UserPanel from './components/UserPanel';
 import './App.css';
 
 function App() {
   const [showChat, setShowChat] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [showUserPanel, setShowUserPanel] = useState(false);
   const [user, setUser] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -41,10 +45,12 @@ function App() {
   const handleLogin = (userData) => {
     setUser(userData);
     setShowLogin(false);
+    setShowUserPanel(true);
   };
 
   const handleLogout = () => {
     setUser(null);
+    setShowUserPanel(false);
   };
 
   const navigationLinks = [
@@ -58,7 +64,7 @@ function App() {
     <div className="min-h-screen bg-[#05070A] text-white selection:bg-primary/30">
       {/* Navigation */}
       <nav
-        className={`fixed top-0 w-full z-50 transition-all duration-500 px-8 ${scrolled
+        className={`fixed top-0 w-full z-100 transition-all duration-500 px-8 ${scrolled
             ? 'py-4 glass-morphism border-0 border-b border-white/5 rounded-none'
             : 'py-8 bg-transparent'
           }`}
@@ -83,11 +89,21 @@ function App() {
 
           <div className="hidden lg:flex gap-6 items-center">
             {user ? (
-              <div className="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-full border border-white/5">
-                <span className="text-[10px] font-bold text-primary tracking-widest flex items-center gap-2">
-                  <UserIcon size={12} /> {user.name.toUpperCase()}
+              <div
+                className="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-full border border-white/5 cursor-pointer hover:bg-white/10 transition"
+                onClick={() => setShowUserPanel(true)}
+              >
+                <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                  <UserIcon size={12} className="text-primary" />
+                </div>
+                <span className="text-[10px] font-bold text-primary tracking-widest">
+                  VIP: {user.name.toUpperCase()}
                 </span>
-                <button onClick={handleLogout} className="text-white/40 hover:text-white transition">
+                <div className="w-[1px] h-4 bg-white/10 mx-2"></div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleLogout(); }}
+                  className="text-white/40 hover:text-white transition"
+                >
                   <LogOutIcon size={14} />
                 </button>
               </div>
@@ -136,6 +152,14 @@ function App() {
                 {link.name}
               </a>
             ))}
+            {user && (
+              <button
+                onClick={() => { setShowUserPanel(true); setMobileMenuOpen(false); }}
+                className="text-primary font-black tracking-widest"
+              >
+                PANEL DE USUARIO
+              </button>
+            )}
             <button
               className="btn-primary mt-4"
               onClick={() => { setShowChat(true); setMobileMenuOpen(false); }}
@@ -176,8 +200,11 @@ function App() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <button className="group btn-primary min-w-[240px]">
-                SOLICITAR INVITACIÓN
+              <button
+                className="group btn-primary min-w-[240px]"
+                onClick={() => user ? setShowUserPanel(true) : setShowLogin(true)}
+              >
+                {user ? 'VER MI PANEL' : 'SOLICITAR INVITACIÓN'}
                 <ArrowRight size={14} className="inline ml-2 group-hover:translate-x-1 transition-all" />
               </button>
               <button className="btn-secondary min-w-[240px]" onClick={() => window.location.href = '#experiencia'}>
@@ -242,7 +269,7 @@ function App() {
         </div>
       </section>
 
-      {/* Vuelo Manifest Section (Moved outside Hero for better layout) */}
+      {/* Vuelo Manifest Section */}
       <section className="py-32 px-8 bg-white/5 border-y border-white/5" id="vuelo">
         <div className="max-w-5xl mx-auto text-center mb-16">
           <span className="section-tag">Transporte de Élite</span>
@@ -258,7 +285,7 @@ function App() {
           <div className="inline-flex flex-col md:flex-row items-center gap-4 bg-primary/5 border border-primary/20 px-8 py-4 rounded-2xl">
             <ShieldAlert size={20} className="text-primary animate-pulse" />
             <span className="text-sm font-bold tracking-widest text-primary/80 uppercase">
-              Alerta: El Manifiesto se cierra en 12 horas. 4 asientos Platinum disponibles.
+              Alerta: El Manifiesto se cierra en 12 horas. Asientos Platinum disponibles.
             </span>
           </div>
         </div>
@@ -313,18 +340,19 @@ function App() {
           <div className="grid lg:grid-cols-3 gap-8 items-stretch pt-12">
             <PlanCard
               name="Platinum Member"
-              price="$10,000"
+              price="$5,200"
               features={[
                 "Vuelo Charter VVIP",
                 "Suite Mar Deluxe",
                 "Acceso Total Fiestas",
                 "60 Modelas Confirmadas",
-                "Crédito Casino $1,000"
+                "Crédito Casino $500"
               ]}
+              onSelect={() => user ? setShowUserPanel(true) : setShowLogin(true)}
             />
             <PlanCard
               name="Diamond VIP"
-              price="$15,000"
+              price="$7,500"
               features={[
                 "Jet Privado First Class",
                 "Villa Piscina Infinita",
@@ -334,6 +362,7 @@ function App() {
                 "Prioridad con Modelos"
               ]}
               highlight
+              onSelect={() => user ? setShowUserPanel(true) : setShowLogin(true)}
             />
             <PlanCard
               name="Private Group"
@@ -345,6 +374,7 @@ function App() {
                 "Fiesta en Isla Secreta",
                 "Logística a medida"
               ]}
+              onSelect={() => user ? setShowUserPanel(true) : setShowLogin(true)}
             />
           </div>
         </div>
@@ -357,6 +387,13 @@ function App() {
         onLogin={handleLogin}
       />
 
+      <UserPanel
+        isOpen={showUserPanel}
+        onClose={() => setShowUserPanel(false)}
+        user={user}
+        onLogout={handleLogout}
+      />
+
       <AnimatePresence>
         {showChat && (
           <motion.div
@@ -364,7 +401,7 @@ function App() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 w-full md:w-[450px] z-[100]"
+            className="fixed inset-y-0 right-0 w-full md:w-[450px] z-200"
           >
             <GroupChat onClose={() => setShowChat(false)} user={user} />
           </motion.div>
@@ -446,7 +483,7 @@ function FeatureCard({ title, desc, icon, img, tag }) {
   );
 }
 
-function PlanCard({ name, price, features, highlight }) {
+function PlanCard({ name, price, features, highlight, onSelect }) {
   return (
     <motion.div
       whileHover={{ y: -10 }}
@@ -478,10 +515,13 @@ function PlanCard({ name, price, features, highlight }) {
         ))}
       </ul>
 
-      <button className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all duration-500 ${highlight
-          ? 'btn-primary'
-          : 'bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20'
-        }`}>
+      <button
+        onClick={onSelect}
+        className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all duration-500 ${highlight
+            ? 'btn-primary'
+            : 'bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20'
+          }`}
+      >
         SOLICITAR ACCESO
       </button>
     </motion.div>
@@ -490,19 +530,13 @@ function PlanCard({ name, price, features, highlight }) {
 
 function SocialIcon({ name }) {
   return (
-    <div className="w-12 h-12 rounded-2xl border border-white/10 flex items-center justify-center hover:border-primary transition cursor-pointer text-white/20 hover:text-primary group relative">
-      <span className="text-xs font-bold font-mono tracking-tighter">{name.charAt(0)}</span>
+    <div className="w-12 h-12 rounded-2xl border border-white/10 flex items-center justify-center hover:border-primary transition cursor-pointer text-white/20 hover:text-primary group relative text-center">
+      <span className="text-xs font-bold font-mono tracking-tighter mx-auto mt-3.5 block">{name.charAt(0)}</span>
       <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
         {name}
       </div>
     </div>
   );
 }
-
-const CheckCircleIcon = (props) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
 
 export default App;
