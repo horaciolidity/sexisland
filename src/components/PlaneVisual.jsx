@@ -7,7 +7,6 @@ const PlaneVisual = () => {
     const totalSeats = 30;
 
     // Confirmed passengers redistributed to the back (Indices 8 to 29)
-    // VIP section (Indices 0-7) stays FREE / Available
     const confirmedIndices = [12, 13, 16, 17, 24, 25, 29];
 
     const getPassengerData = (index) => {
@@ -38,7 +37,7 @@ const PlaneVisual = () => {
 
             {/* Horizontal Plane Container with Scroll for Mobile */}
             <div className="overflow-x-auto pb-12 mask-fade-edges custom-scrollbar">
-                <div className="relative flex items-center justify-center min-w-[900px] mx-auto py-10">
+                <div className="relative flex items-center justify-center min-w-[900px] mx-auto py-20 px-10">
 
                     {/* Plane Nose (Left) */}
                     <div className="relative w-32 h-56 bg-white/5 border border-white/10 rounded-l-full flex items-center justify-center overflow-hidden flex-shrink-0 shadow-[inset_10px_0_20px_rgba(255,255,255,0.02)]">
@@ -62,18 +61,20 @@ const PlaneVisual = () => {
                         <div className="grid grid-flow-col grid-rows-5 gap-4 md:gap-5 flex-1 items-center">
                             {Array.from({ length: 8 }).map((_, col) => (
                                 <React.Fragment key={col}>
-                                    {/* Top Seats */}
+                                    {/* Top Seats - Tooltip goes DOWN */}
                                     <SeatWrapper
                                         index={col * 4 + 0}
                                         isConfirmed={confirmedIndices.includes(col * 4 + 0)}
                                         data={getPassengerData(col * 4 + 0)}
                                         isVIP={col < 2}
+                                        tooltipDir="down"
                                     />
                                     <SeatWrapper
                                         index={col * 4 + 1}
                                         isConfirmed={confirmedIndices.includes(col * 4 + 1)}
                                         data={getPassengerData(col * 4 + 1)}
                                         isVIP={col < 2}
+                                        tooltipDir="down"
                                     />
 
                                     {/* Aisle */}
@@ -83,12 +84,13 @@ const PlaneVisual = () => {
                                         </div>
                                     </div>
 
-                                    {/* Bottom Seats */}
+                                    {/* Bottom Seats - Tooltip goes UP */}
                                     <SeatWrapper
                                         index={col * 4 + 2}
                                         isConfirmed={confirmedIndices.includes(col * 4 + 2)}
                                         data={getPassengerData(col * 4 + 2)}
                                         isVIP={col < 2}
+                                        tooltipDir="up"
                                     />
 
                                     {col * 4 + 3 < totalSeats ? (
@@ -97,6 +99,7 @@ const PlaneVisual = () => {
                                             isConfirmed={confirmedIndices.includes(col * 4 + 3)}
                                             data={getPassengerData(col * 4 + 3)}
                                             isVIP={col < 2}
+                                            tooltipDir="up"
                                         />
                                     ) : (
                                         <div className="w-10 h-10 md:w-12 md:h-12 opacity-0" />
@@ -138,7 +141,7 @@ const PlaneVisual = () => {
     );
 };
 
-const SeatWrapper = ({ index, isConfirmed, data, isVIP }) => {
+const SeatWrapper = ({ index, isConfirmed, data, isVIP, tooltipDir = "up" }) => {
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -174,11 +177,14 @@ const SeatWrapper = ({ index, isConfirmed, data, isVIP }) => {
             )}
 
             {!isConfirmed && isVIP && (
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-[6px] font-black text-primary/0 group-hover:text-primary/100 transition-all uppercase tracking-tighter bg-black/80 px-1 rounded">VIP</div>
+                <div className={`absolute ${tooltipDir === 'up' ? '-top-2' : '-bottom-2'} left-1/2 -translate-x-1/2 text-[6px] font-black text-primary/0 group-hover:text-primary/100 transition-all uppercase tracking-tighter bg-black/80 px-1 rounded`}>VIP</div>
             )}
 
             {isConfirmed && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 p-4 glass-morphism text-[11px] w-40 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 shadow-[0_25px_50px_rgba(0,0,0,0.8)] border-primary/30">
+                <div className={`
+          absolute left-1/2 -translate-x-1/2 p-4 glass-morphism text-[11px] w-40 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-[100] shadow-[0_25px_50px_rgba(0,0,0,0.8)] border-primary/30
+          ${tooltipDir === 'up' ? 'bottom-full mb-4' : 'top-full mt-4'}
+        `}>
                     <div className="text-primary font-black uppercase tracking-widest border-b border-white/10 pb-2 mb-2 flex justify-between items-center">
                         {data.name}
                         <Star size={10} className="fill-primary text-primary" />
