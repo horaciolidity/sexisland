@@ -11,14 +11,29 @@ import {
   Gem,
   ArrowRight,
   ShieldAlert,
-  CalendarDays
+  CalendarDays,
+  User as UserIcon,
+  LogIn as LogInIcon,
+  LogOut as LogOutIcon
 } from 'lucide-react';
 import GroupChat from './components/GroupChat';
 import PlaneVisual from './components/PlaneVisual';
+import LoginModal from './components/LoginModal';
 import './App.css';
 
 function App() {
   const [showChat, setShowChat] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [user, setUser] = useState(null);
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setShowLogin(false);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+  };
 
   return (
     <div className="min-h-screen bg-[#05070A] text-white">
@@ -29,6 +44,25 @@ function App() {
           <a href="#experiencia" className="hover:text-primary transition">La Experiencia</a>
           <a href="#itinerario" className="hover:text-primary transition">Itinerario</a>
           <a href="#planes" className="hover:text-primary transition">Planes VIP</a>
+
+          {user ? (
+            <div className="flex items-center gap-4 border-l border-white/10 pl-6">
+              <span className="text-primary tracking-widest flex items-center gap-2">
+                <UserIcon size={14} /> VIP: {user.name.toUpperCase()}
+              </span>
+              <button onClick={handleLogout} className="text-white/40 hover:text-white transition">
+                <LogOutIcon size={16} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowLogin(true)}
+              className="flex items-center gap-2 hover:text-primary transition border-l border-white/10 pl-6"
+            >
+              <LogInIcon size={16} /> ACCESO VIP
+            </button>
+          )}
+
           <button className="btn-primary" onClick={() => setShowChat(true)}>Chat Privado</button>
         </div>
       </nav>
@@ -73,7 +107,7 @@ function App() {
               </button>
               <div className="flex items-center gap-2 text-[10px] text-white/40 font-bold uppercase tracking-widest">
                 <ShieldAlert size={14} className="text-primary" />
-                Quedan 27 plazas para hombres
+                Quedan 23 plazas para hombres
               </div>
             </div>
           </motion.div>
@@ -215,7 +249,13 @@ function App() {
         </div>
       </section>
 
-      {/* Chat Overlay */}
+      {/* Overlays */}
+      <LoginModal
+        isOpen={showLogin}
+        onClose={() => setShowLogin(false)}
+        onLogin={handleLogin}
+      />
+
       <AnimatePresence>
         {showChat && (
           <motion.div
@@ -225,7 +265,7 @@ function App() {
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed inset-y-0 right-0 w-full md:w-[450px] z-[100]"
           >
-            <GroupChat onClose={() => setShowChat(false)} />
+            <GroupChat onClose={() => setShowChat(false)} user={user} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -248,7 +288,6 @@ function App() {
               La experiencia más exclusiva del mundo diseñada para aquellos hombres que no se conforman con lo ordinario.
             </p>
             <div className="flex gap-4">
-              {/* Placeholders for social icons */}
               <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary transition cursor-pointer text-dim hover:text-primary underline">TW</div>
               <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary transition cursor-pointer text-dim hover:text-primary underline">IG</div>
               <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary transition cursor-pointer text-dim hover:text-primary underline">TG</div>
@@ -300,7 +339,7 @@ function PlanCard({ name, price, features, highlight }) {
   return (
     <motion.div
       whileHover={{ y: -10 }}
-      className={`p-10 rounded-[32px] text-center border transition-all ${highlight ? 'bg-primary text-black border-primary' : 'bg-white/5 border-white/10 hover:border-primary/40'}`}
+      className={`p-10 rounded-[32px] text-center border transition-all ${highlight ? 'bg-primary text-black border-primary font-bold shadow-2xl shadow-primary/20' : 'bg-white/5 border-white/10 hover:border-primary/40'}`}
     >
       <h3 className={`text-sm font-black uppercase tracking-[0.3em] mb-4 ${highlight ? 'text-black/60' : 'text-primary'}`}>{name}</h3>
       <div className="text-4xl font-black mb-10">{price}</div>
