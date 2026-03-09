@@ -5,6 +5,7 @@
 .gold-text {
   background: linear-gradient(135deg, #FFD700 0%, #B8860B 50%, #FFD700 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
 }
@@ -95,4 +96,19 @@ section {
 
 .animate-pulse-slow {
   animation: pulse-slow 4s infinite ease-in-out;
+}
+
+/* Safe Area Support */
+:root {
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pb-safe {
+  padding-bottom: calc(1.5rem + var(--safe-area-bottom));
+}
+
+@media (max-width: 1024px) {
+  .pb-safe-nav {
+    padding-bottom: calc(5rem + var(--safe-area-bottom));
+  }
 }

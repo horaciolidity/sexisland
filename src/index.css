@@ -60,6 +60,7 @@ h4 {
 .gold-text {
   background: linear-gradient(135deg, #FFD700 0%, #FFF5D1 50%, #B8860B 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 900;
   filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4));
@@ -188,4 +189,46 @@ h4 {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Mobile App Optimization */
+@media (max-width: 1024px) {
+  body {
+    -webkit-tap-highlight-color: transparent;
+    cursor: default;
+    overflow-x: hidden;
+  }
+
+  /* Prevent text selection on nav items for app feel */
+  .lg\:hidden nav,
+  .lg\:hidden div {
+    user-select: none;
+  }
+
+  /* Smooth snap-like scrolling for sections */
+  main {
+    scroll-snap-type: y proximity;
+  }
+
+  section {
+    scroll-snap-align: start;
+  }
+}
+
+.pulse-gold {
+  animation: pulse-gold 2s infinite;
+}
+
+@keyframes pulse-gold {
+  0% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 20px rgba(212, 175, 55, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
 }
