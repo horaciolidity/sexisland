@@ -70,7 +70,8 @@ function App() {
     { name: 'Santuario', href: '#experiencia' },
     { name: 'Stars VIP', href: '#modelos' },
     { name: 'Suites VIP', href: '#suites' },
-    { name: 'Reservar', href: '#planes' },
+    { name: 'Vuelo', href: '#vuelo' },
+    { name: 'Tarifas', href: '#planes' },
   ];
 
   return (
@@ -237,11 +238,14 @@ function App() {
             <div className="flex flex-col sm:flex-row gap-4 md:gap-8 justify-center items-center px-4">
               <button
                 className="w-full sm:w-auto group px-8 md:px-12 py-5 md:py-7 rounded-2xl bg-primary text-black font-black text-[10px] md:text-xs tracking-[0.3em] md:tracking-[0.4em] uppercase hover:scale-[1.03] transition-all shadow-glow relative overflow-hidden"
-                onClick={() => user ? setShowUserPanel(true) : setShowLogin(true)}
+                onClick={() => document.getElementById('planes').scrollIntoView({ behavior: 'smooth' })}
               >
                 SOLICITAR INVITACIÓN <ArrowRight size={18} className="inline ml-2 md:ml-3" />
               </button>
-              <button className="w-full sm:w-auto px-8 md:px-12 py-5 md:py-7 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-[10px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase hover:bg-white/10 transition-all">
+              <button
+                onClick={() => document.getElementById('modelos').scrollIntoView({ behavior: 'smooth' })}
+                className="w-full sm:w-auto px-8 md:px-12 py-5 md:py-7 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-[10px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase hover:bg-white/10 transition-all font-serif italic"
+              >
                 EXPLORAR EL PARAÍSO
               </button>
             </div>
@@ -270,9 +274,40 @@ function App() {
           </div>
 
           <div className="mt-12 md:mt-20 text-center px-4">
-            <button className="w-full sm:w-auto px-8 md:px-12 py-5 md:py-6 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-black text-[10px] md:text-xs tracking-[0.3em] md:tracking-[0.5em] uppercase hover:bg-primary hover:text-black transition-all group md:scale-110 shadow-glow">
+            <button
+              onClick={() => user ? setShowUserPanel(true) : setShowLogin(true)}
+              className="w-full sm:w-auto px-8 md:px-12 py-5 md:py-6 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-black text-[10px] md:text-xs tracking-[0.3em] md:tracking-[0.5em] uppercase hover:bg-primary hover:text-black transition-all group md:scale-110 shadow-glow"
+            >
               VER CATÁLOGO DE 60 ESTRELLAS <Flame size={18} className="inline ml-2 md:ml-3 animate-pulse" />
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* EXPERIENCE / SERVICES SECTION */}
+      <section id="experiencia" className="py-24 md:py-40 bg-[#020305] relative">
+        <div className="max-w-7xl mx-auto px-6 md:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+            <ServiceItem
+              icon={<Dices className="text-primary" size={32} />}
+              title="Casino Clandestino"
+              desc="Apuestas de alto nivel sin límites, reservado solo para poseedores de la Diamond Villa."
+            />
+            <ServiceItem
+              icon={<UtensilsCrossed className="text-primary" size={32} />}
+              title="Gastronomía Molecular"
+              desc="Chefs con estrellas Michelin fusionando el placer visual con el gusto más exigente."
+            />
+            <ServiceItem
+              icon={<Mic2 className="text-primary" size={32} />}
+              title="Performance Elite"
+              desc="Shows privados diseñados por directores de cine adulto ganadores de premios AVN."
+            />
+            <ServiceItem
+              icon={<ShieldCheck className="text-primary" size={32} />}
+              title="Privacidad Absoluta"
+              desc="Seguridad militar y zonas No-Phone para que su realidad permanezca en secreto."
+            />
           </div>
         </div>
       </section>
@@ -371,6 +406,33 @@ function App() {
         )}
       </div>
 
+      {/* TESTIMONIALS SECTION */}
+      <section className="py-24 md:py-40 bg-black overflow-hidden relative">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 blur-[120px] rounded-full"></div>
+        <div className="max-w-7xl mx-auto px-6 md:px-8">
+          <div className="text-center mb-16 md:mb-24">
+            <h2 className="text-3xl md:text-5xl font-black italic-luxury font-serif uppercase tracking-tighter gold-text">Ecos del Recuerdo</h2>
+            <p className="text-white/20 text-[10px] md:text-xs uppercase tracking-[0.4em] mt-4 font-black">Testimonios de Miembros Soberanos</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+            <TestimonialCard
+              text="Lo que viví en el Santuario no se puede explicar con palabras. La privacidad es absoluta y el nivel de las estrellas es de otro planeta."
+              author="A. R. (Dubai)"
+            />
+            <TestimonialCard
+              text="El Jet privado es solo el comienzo. Una vez en la isla, pierdes la noción del tiempo. Es el único lugar donde puedo ser yo mismo."
+              author="M. S. (Zurich)"
+              highlight
+            />
+            <TestimonialCard
+              text="Superó mis expectativas. La atención al detalle es quirúrgica. Es, sin duda, la experiencia más lujosa y cruda que el dinero puede comprar."
+              author="J. P. (Monaco)"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* SPONSORS SECTION */}
       <section className="py-20 md:py-32 border-t border-white/5 bg-[#010203]">
         <div className="max-w-7xl mx-auto px-6">
@@ -405,9 +467,34 @@ function App() {
       </section>
 
       {/* Footer */}
-      <footer className="pt-20 pb-16 md:pb-10 border-t border-white/5 bg-black text-center px-6">
-        <div className="text-3xl md:text-4xl font-black gold-text mb-4 italic-luxury font-serif">SANTUARIO</div>
-        <p className="text-white/10 text-[8px] md:text-[10px] uppercase tracking-[0.4em] md:tracking-[0.6em] leading-relaxed">ADULT RESERVE | PRIVATE GLOBAL ELITE © 2026</p>
+      <footer className="pt-24 pb-20 md:pb-12 border-t border-white/5 bg-black text-center px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-20 text-left">
+          <div className="md:col-span-2">
+            <div className="text-3xl md:text-4xl font-black gold-text mb-6 italic-luxury font-serif">SANTUARIO</div>
+            <p className="text-white/30 text-xs md:text-sm font-light max-w-sm leading-relaxed italic">
+              "El último refugio de la libertad absoluta. Donde el poder se encuentra con el deseo en su estado más puro y privado."
+            </p>
+          </div>
+          <div>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-6">Logística</h4>
+            <ul className="space-y-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">
+              <li className="hover:text-white cursor-pointer transition-colors">Vuelos Charter</li>
+              <li className="hover:text-white cursor-pointer transition-colors">Traslados Heli</li>
+              <li className="hover:text-white cursor-pointer transition-colors">Seguridad VVIP</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-6">Legal</h4>
+            <ul className="space-y-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">
+              <li className="hover:text-white cursor-pointer transition-colors">Privacidad Nodo</li>
+              <li className="hover:text-white cursor-pointer transition-colors">Anonymity Protocol</li>
+              <li className="hover:text-white cursor-pointer transition-colors">Términos de Élite</li>
+            </ul>
+          </div>
+        </div>
+        <div className="pt-12 border-t border-white/5">
+          <p className="text-white/10 text-[8px] md:text-[10px] uppercase tracking-[0.4em] md:tracking-[0.6em] leading-relaxed">ADULT RESERVE | PRIVATE GLOBAL ELITE © 2026</p>
+        </div>
       </footer>
     </div>
   );
@@ -445,12 +532,20 @@ function StarCard({ name, img, vibe, desc }) {
     <motion.div whileHover={{ y: -10 }} className="group relative rounded-[40px] md:rounded-[50px] overflow-hidden border border-white/10 hover:border-primary/40 transition-all duration-700 bg-black shadow-2xl">
       <div className="aspect-[4/6] overflow-hidden relative">
         <img src={img} className="w-full h-full object-cover transition-all duration-[2s] group-hover:scale-110" alt={name} />
-        <div className="absolute inset-x-4 md:inset-x-6 top-4 md:top-6 flex justify-between">
+        <div className="absolute inset-x-4 md:inset-x-6 top-4 md:top-6 flex justify-between items-center w-full pr-8">
           <span className="px-3 md:px-4 py-1 md:py-1.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[8px] md:text-[9px] font-black text-primary tracking-widest">{vibe}</span>
+          <button className="p-2 md:p-3 bg-primary/20 backdrop-blur-md border border-primary/30 rounded-full text-primary hover:bg-primary hover:text-black transition-all">
+            <Eye size={16} />
+          </button>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90 group-hover:opacity-40 transition-opacity"></div>
+        <div className="absolute inset-x-0 bottom-0 p-8 z-20 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+          <button className="w-full py-4 bg-primary text-black font-black text-[9px] uppercase tracking-widest rounded-2xl shadow-glow">
+            RESERVAR ENCUENTRO
+          </button>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90 group-hover:opacity-60 transition-opacity"></div>
       </div>
-      <div className="p-6 md:p-10 relative -mt-24 md:-mt-32 z-10">
+      <div className="p-6 md:p-10 relative -mt-24 md:-mt-32 z-10 transition-transform duration-500 group-hover:-translate-y-4">
         <h3 className="text-2xl md:text-4xl font-black text-white mb-2 md:mb-4 italic font-serif leading-none tracking-tighter uppercase gold-text">{name}</h3>
         <p className="text-white/40 text-xs md:text-sm font-light leading-relaxed group-hover:text-white transition-colors duration-500">{desc}</p>
       </div>
@@ -485,6 +580,30 @@ function PlanCard({ name, price, features, highlight, onSelect }) {
         RESERVAR ACCESO
       </button>
     </motion.div>
+  );
+}
+
+function TestimonialCard({ text, author, highlight }) {
+  return (
+    <div className={`p-10 rounded-[40px] border ${highlight ? 'border-primary/30 bg-primary/5 shadow-glow scale-105' : 'border-white/5 bg-white/[0.02]'} transition-all duration-700`}>
+      <div className="text-primary mb-6 flex gap-1">
+        {[...Array(5)].map((_, i) => <Star key={i} size={12} fill="currentColor" />)}
+      </div>
+      <p className="text-lg md:text-xl font-light italic font-serif leading-relaxed mb-8 text-white/80">"{text}"</p>
+      <div className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">{author}</div>
+    </div>
+  );
+}
+
+function ServiceItem({ icon, title, desc }) {
+  return (
+    <div className="group p-8 glass-morphism rounded-[40px] border-white/5 hover:border-primary/20 transition-all duration-500">
+      <div className="mb-6 p-4 bg-primary/5 rounded-2xl w-fit group-hover:bg-primary group-hover:text-black transition-all">
+        {icon}
+      </div>
+      <h3 className="text-xl font-black uppercase tracking-widest mb-4 italic font-serif gold-text">{title}</h3>
+      <p className="text-white/30 text-xs leading-relaxed group-hover:text-white/60 transition-colors">{desc}</p>
+    </div>
   );
 }
 

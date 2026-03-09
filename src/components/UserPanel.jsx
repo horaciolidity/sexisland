@@ -276,31 +276,98 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                             )}
 
                             {activeTab === 'travel' && (
-                                <div className="grid grid-cols-1 gap-6">
-                                    <div className="p-8 glass-morphism border-white/5 rounded-[40px] text-center">
-                                        <Plane size={48} className="mx-auto mb-6 text-primary opacity-20" />
-                                        <h3 className="text-xl font-black mb-4 italic-luxury">DETALLES DE VUELO</h3>
-                                        <div className="space-y-4 max-w-sm mx-auto">
-                                            <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl">
-                                                <span className="text-[10px] font-black text-white/40 uppercase">Estatus</span>
-                                                <span className="text-[10px] font-black text-primary uppercase">Pendiente de Pago</span>
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                                    <div className="p-8 glass-morphism border-white/5 rounded-[40px]">
+                                        <div className="flex items-center gap-4 mb-8">
+                                            <div className="p-3 bg-primary/20 rounded-2xl text-primary"><Plane size={24} /></div>
+                                            <h3 className="text-xl font-black italic-luxury italic uppercase">Logística de Vuelo</h3>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div className="p-5 bg-white/5 rounded-2xl border border-white/5 flex justify-between items-center group hover:border-primary/20 transition-all">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center font-black text-primary border border-primary/20">01</div>
+                                                    <div className="text-left">
+                                                        <div className="text-[10px] font-black uppercase text-white">Vuelo Charter SX-700</div>
+                                                        <div className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Global First Class</div>
+                                                    </div>
+                                                </div>
+                                                <span className="text-[8px] font-black text-primary bg-primary/10 px-3 py-1 rounded-full uppercase">Reservado</span>
                                             </div>
-                                            <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl">
-                                                <span className="text-[10px] font-black text-white/40 uppercase">Carnet</span>
-                                                <span className="text-[10px] font-black text-red-500 uppercase flex items-center gap-2"><AlertTriangle size={12} /> Requiere Subida</span>
+
+                                            <div className="p-5 bg-white/5 rounded-2xl border border-white/5 flex justify-between items-center opacity-40">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center font-black text-white/20 border border-white/10">02</div>
+                                                    <div className="text-left">
+                                                        <div className="text-[10px] font-black uppercase text-white/40">Helicóptero de Traslado</div>
+                                                        <div className="text-[8px] font-bold text-white/10 uppercase tracking-widest">Santuario Heliport</div>
+                                                    </div>
+                                                </div>
+                                                <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Pendiente</span>
                                             </div>
                                         </div>
-                                        <button className="btn-secondary w-full mt-8 py-5 rounded-2xl text-[10px]">SUBIR DOCUMENTACIÓN <Camera size={14} className="inline ml-2" /></button>
+
+                                        <button className="w-full mt-8 py-5 border-2 border-primary/20 rounded-2xl text-[9px] font-black uppercase tracking-[0.3em] hover:bg-primary/10 transition-all flex items-center justify-center gap-3">
+                                            <Camera size={14} /> SUBIR PASAPORTE PARA VERIFICACIÓN
+                                        </button>
                                     </div>
-                                </div>
+
+                                    <div className="p-8 bg-black/40 rounded-[40px] border border-white/5">
+                                        <h4 className="text-[10px] font-black text-white/20 mb-4 uppercase tracking-[0.2em]">Servicios de Concierge</h4>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="p-4 bg-white/5 rounded-2xl text-center cursor-pointer hover:bg-primary/5 transition-all">
+                                                <UtensilsCrossed size={16} className="mx-auto mb-2 text-primary/40" />
+                                                <div className="text-[8px] font-black uppercase">Menú VIP</div>
+                                            </div>
+                                            <div className="p-4 bg-white/5 rounded-2xl text-center cursor-pointer hover:bg-primary/5 transition-all">
+                                                <Ship size={16} className="mx-auto mb-2 text-primary/40" />
+                                                <div className="text-[8px] font-black uppercase">Yate Privado</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
                             )}
 
                             {activeTab === 'settings' && (
-                                <div className="space-y-6">
-                                    <button onClick={onLogout} className="w-full btn-secondary text-red-500 border-red-500/20 hover:bg-red-500/10 py-5 rounded-2xl flex items-center justify-center gap-3">
-                                        <LogOut size={16} /> CERRAR SESIÓN DE SEGURIDAD
-                                    </button>
-                                </div>
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                                    <div className="glass-morphism p-8 rounded-[40px] border-white/5">
+                                        <div className="flex items-center gap-4 mb-8">
+                                            <div className="p-3 bg-primary/20 rounded-2xl text-primary"><Shield size={24} /></div>
+                                            <h3 className="text-xl font-black italic-luxury italic uppercase">Seguridad del Nodo</h3>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl">
+                                                <div>
+                                                    <div className="text-[10px] font-black uppercase text-white">Autenticación 2FA</div>
+                                                    <div className="text-[8px] font-bold text-green-500 uppercase tracking-widest">ACTIVA</div>
+                                                </div>
+                                                <div className="w-10 h-6 bg-primary/20 rounded-full p-1 cursor-pointer">
+                                                    <div className="w-4 h-4 bg-primary rounded-full ml-auto shadow-glow"></div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl">
+                                                <div>
+                                                    <div className="text-[10px] font-black uppercase text-white">FaceID / BioLog</div>
+                                                    <div className="text-[8px] font-bold text-white/20 uppercase tracking-widest">REQUERIDO</div>
+                                                </div>
+                                                <div className="w-10 h-6 bg-white/10 rounded-full p-1 cursor-not-allowed">
+                                                    <div className="w-4 h-4 bg-white/20 rounded-full"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-3xl">
+                                        <p className="text-[9px] text-red-500/60 font-medium mb-4 italic leading-relaxed uppercase tracking-tighter text-center">
+                                            AL CERRAR SESIÓN, TODOS LOS DATOS TEMPORALES DEL NODO SE ELIMINARÁN PERMANENTEMENTE PARA SU SEGURIDAD.
+                                        </p>
+                                        <button onClick={onLogout} className="w-full btn-secondary text-red-500 border-red-500/20 hover:bg-red-500/10 py-5 rounded-2xl flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest">
+                                            <LogOut size={16} /> DESTRUIR SESIÓN ACTUAL
+                                        </button>
+                                    </div>
+                                </motion.div>
                             )}
                         </div>
 
