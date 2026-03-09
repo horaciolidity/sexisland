@@ -6,6 +6,7 @@ import {
     CreditCard,
     Plane,
     Shield,
+    ShieldCheck,
     Wallet,
     Clock,
     Camera,
@@ -20,7 +21,9 @@ import {
     LogOut,
     Zap,
     Globe,
-    Lock
+    Lock,
+    UtensilsCrossed,
+    Ship
 } from 'lucide-react';
 
 const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
