@@ -26,69 +26,104 @@ import {
     Ship
 } from 'lucide-react';
 
+const USDC_CONTRACT = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'; // USDC ERC-20 mainnet
+const RECIPIENT = '0xBAeaDE80A2A1064E4F8f372cd2ADA9a00daB4BBE';
+
+const PLANS = [
+    {
+        id: 'platinum',
+        name: 'Platinum Star',
+        price: 5200,
+        usdcWei: '0x' + (5200n * 1_000_000n).toString(16),  // 6 decimals
+        features: ['Vuelo Charter VVIP', 'Suite Mar Deluxe', 'Acceso Total Fiestas', '60 Estrellas Adultas', 'Crédito Casino $500'],
+        color: 'border-primary/20'
+    },
+    {
+        id: 'diamond',
+        name: 'Diamond Imperial',
+        price: 7500,
+        usdcWei: '0x' + (7500n * 1_000_000n).toString(16),
+        features: ['Jet Privado Global First', 'Villa Piscina Infinita', 'Concierge 24/7', 'Casino Unlimited', 'Stage VIP + Reserva Prioritaria'],
+        color: 'border-primary ring-1 ring-primary/30',
+        highlight: true
+    }
+];
+
+// Encode ERC-20 transfer(address,uint256)
+function encodeTransfer(to, amountHex) {
+    const sig = 'a9059cbb'; // keccak256('transfer(address,uint256)') first 4 bytes
+    const addr = to.replace('0x', '').toLowerCase().padStart(64, '0');
+    const amount = BigInt(amountHex).toString(16).padStart(64, '0');
+    return '0x' + sig + addr + amount;
+}
+
 const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
     const [activeTab, setActiveTab] = useState('summary');
     const [copied, setCopied] = useState(false);
-    const [connecting, setConnecting] = useState(false);
     const [connectedWallet, setConnectedWallet] = useState(null);
     const [paying, setPaying] = useState(false);
-    const [payStatus, setPayStatus] = useState(null); // 'success', 'error'
-
-    const walletAddress = "0xBAeaDE80A2A1064E4F8f372cd2ADA9a00daB4BBE";
+    const [payStatus, setPayStatus] = useState(null);   // 'success' | 'error'
+    const [txHash, setTxHash] = useState('');
+    const [selectedPlan, setSelectedPlan] = useState(null);
+    const [showTermsPopup, setShowTermsPopup] = useState(false);
+    const [termsConfirmed, setTermsConfirmed] = useState(false);
 
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(walletAddress);
+        navigator.clipboard.writeText(RECIPIENT);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
+    /* ── Step 1: connect wallet ─────────────────── */
     const connectWallet = async () => {
-        if (window.ethereum) {
-            setConnecting(true);
-            try {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                setConnectedWallet(accounts[0]);
-                setConnecting(false);
-            } catch (error) {
-                console.error("User denied account access", error);
-                setConnecting(false);
-            }
-        } else {
-            alert("Por favor instale MetaMask u otra wallet compatible.");
+        if (!window.ethereum) {
+            alert('Por favor instale MetaMask u otra wallet EVM compatible.');
+            return null;
+        }
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            setConnectedWallet(accounts[0]);
+            return accounts[0];
+        } catch {
+            return null;
         }
     };
 
-    const handleAutomaticPayment = async (amount) => {
-        if (!connectedWallet) {
-            await connectWallet();
-            return;
-        }
+    /* ── Step 2: show terms popup before paying ── */
+    const handleSelectAndPay = (plan) => {
+        setSelectedPlan(plan);
+        setTermsConfirmed(false);
+        setShowTermsPopup(true);
+    };
 
+    /* ── Step 3: execute USDC transfer ─────────── */
+    const executePayment = async () => {
+        setShowTermsPopup(false);
         setPaying(true);
         setPayStatus(null);
 
+        let wallet = connectedWallet;
+        if (!wallet) wallet = await connectWallet();
+        if (!wallet) { setPaying(false); return; }
+
         try {
-            // Basic ETH/Native transfer since USDC contract interactions vary by chain
-            // Converting amount to Hex for raw eth_sendTransaction
-            // 5200 USD placeholder in Native for demo purposes if not on a specific network
-            // Value in Wei (approximate for demo)
-            const transactionParameters = {
-                to: walletAddress,
-                from: connectedWallet,
-                value: '0x38D7EA4C68000', // Small amount for demo safety (0.001 ETH)
-            };
-
-            const txHash = await window.ethereum.request({
+            const data = encodeTransfer(RECIPIENT, selectedPlan.usdcWei);
+            const hash = await window.ethereum.request({
                 method: 'eth_sendTransaction',
-                params: [transactionParameters],
+                params: [{
+                    from: wallet,
+                    to: USDC_CONTRACT,
+                    data,
+                    gas: '0x186A0',   // 100 000 gas limit
+                }],
             });
-
-            console.log("Transaction Hash:", txHash);
+            setTxHash(hash);
             setPayStatus('success');
-            setPaying(false);
-        } catch (error) {
-            console.error("Payment failed", error);
-            setPayStatus('error');
+        } catch (err) {
+            console.error('Payment failed', err);
+            // code 4001 = user rejected — show friendly message
+            setPayStatus(err.code === 4001 ? 'rejected' : 'error');
+        } finally {
             setPaying(false);
         }
     };
@@ -96,7 +131,7 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
     const tabs = [
         { id: 'summary', name: 'Resumen', icon: <UserIcon size={16} /> },
         { id: 'travel', name: 'Viaje', icon: <Plane size={16} /> },
-        { id: 'payments', name: 'Pago Auto', icon: <Zap size={16} /> },
+        { id: 'payments', name: 'Pago USDC', icon: <Zap size={16} /> },
         { id: 'settings', name: 'Cuenta', icon: <Settings size={16} /> },
     ];
 
@@ -213,94 +248,171 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                             {activeTab === 'payments' && (
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
 
-                                    {/* Status Banner */}
-                                    <div className="p-5 bg-yellow-500/5 border border-yellow-500/20 rounded-3xl flex items-start gap-4">
-                                        <AlertTriangle size={18} className="text-yellow-500 shrink-0 mt-0.5" />
-                                        <div>
-                                            <div className="text-[10px] font-black text-yellow-500 uppercase tracking-widest mb-1">Expediente Pendiente de Aprobación</div>
-                                            <p className="text-[9px] text-white/30 leading-relaxed">El pago solo es posible una vez que su expediente haya sido aprobado por el comité. Recibirá una confirmación por email y WhatsApp. Abajo encontrará los datos para cuando llegue ese momento.</p>
-                                        </div>
+                                    {/* Terms Popup */}
+                                    <AnimatePresence>
+                                        {showTermsPopup && selectedPlan && (
+                                            <motion.div
+                                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                                className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl"
+                                            >
+                                                <motion.div
+                                                    initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
+                                                    className="w-full max-w-md bg-[#07090D] border border-primary/30 rounded-[32px] overflow-hidden shadow-[0_0_80px_rgba(212,175,55,0.2)]"
+                                                >
+                                                    <div className="p-6 bg-black/60 border-b border-white/5 flex items-center gap-4">
+                                                        <div className="p-2.5 bg-primary/10 rounded-xl"><ShieldCheck className="text-primary" size={20} /></div>
+                                                        <div>
+                                                            <h3 className="text-base font-black uppercase italic-luxury italic text-white">Confirmar Pago</h3>
+                                                            <p className="text-[9px] text-primary/60 font-black uppercase tracking-widest">Verificación de Términos Requerida</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-6 space-y-4">
+                                                        <div className="p-5 bg-primary/5 border border-primary/20 rounded-2xl flex justify-between items-center">
+                                                            <div>
+                                                                <div className="text-[9px] text-primary/60 font-black uppercase tracking-widest mb-1">Plan</div>
+                                                                <div className="text-lg font-black italic-luxury uppercase text-white">{selectedPlan.name}</div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <div className="text-2xl font-black font-mono text-white">${selectedPlan.price.toLocaleString()}</div>
+                                                                <div className="text-[8px] text-primary font-black uppercase">USDC — ERC-20</div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="text-[10px] text-white/30 leading-relaxed font-serif italic p-4 bg-white/[0.02] border border-white/5 rounded-2xl max-h-40 overflow-y-auto custom-scrollbar space-y-2">
+                                                            <p>Al confirmar acepta: (1) El pago es no reembolsable bajo ninguna circunstancia. (2) El Protocolo NDA de Confidencialidad Absoluta que impide divulgar ubicación, identidades o actividades del Santuario. (3) La exención médica declarada. (4) La revelación del destino exacto ocurre 72hs antes del vuelo, exclusivamente tras confirmación del pago. (5) La organización se reserva el derecho de expulsión ante incumplimiento de conducta sin reembolso.</p>
+                                                        </div>
+
+                                                        <label className="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 cursor-pointer group hover:border-primary/20 transition-all">
+                                                            <input type="checkbox" className="mt-1 w-5 h-5 rounded accent-yellow-500 shrink-0" checked={termsConfirmed} onChange={e => setTermsConfirmed(e.target.checked)} />
+                                                            <span className="text-[10px] font-black uppercase text-white/40 group-hover:text-white/80 transition-all leading-relaxed">
+                                                                Confirmo que he leído los términos anteriores y acepto el pago irreversible de <span className="text-primary">${selectedPlan.price.toLocaleString()} USDC</span> vía contrato ERC-20.
+                                                            </span>
+                                                        </label>
+                                                    </div>
+
+                                                    <div className="p-6 border-t border-white/5 flex gap-3">
+                                                        <button
+                                                            onClick={() => setShowTermsPopup(false)}
+                                                            className="flex-1 py-4 rounded-2xl bg-white/5 border border-white/10 text-white/40 font-black text-[10px] uppercase hover:text-white transition-all"
+                                                        >
+                                                            Cancelar
+                                                        </button>
+                                                        <button
+                                                            onClick={executePayment}
+                                                            disabled={!termsConfirmed}
+                                                            className={`flex-1 py-4 rounded-2xl btn-primary font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 ${!termsConfirmed ? 'opacity-30 cursor-not-allowed' : 'shadow-glow'}`}
+                                                        >
+                                                            <Zap size={16} /> PAGAR AHORA
+                                                        </button>
+                                                    </div>
+                                                </motion.div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* Header */}
+                                    <div className="text-center">
+                                        <h3 className="text-2xl font-black italic-luxury italic uppercase gold-text tracking-tighter">Selecciona tu Plan</h3>
+                                        <p className="text-[10px] text-white/30 uppercase tracking-widest font-black mt-2">Pago automático USDC via MetaMask / WalletConnect</p>
                                     </div>
 
-                                    {/* Plan Summary */}
-                                    <div className="p-6 md:p-8 glass-morphism rounded-[32px] border-primary/20">
-                                        <div className="flex justify-between items-start mb-6">
-                                            <div>
-                                                <div className="text-[9px] text-primary font-black uppercase tracking-[0.3em] mb-1">Plan Seleccionado</div>
-                                                <h3 className="text-2xl font-black italic-luxury italic gold-text uppercase">Diamond Imperial</h3>
+                                    {/* Wallet connection */}
+                                    {!connectedWallet ? (
+                                        <button
+                                            onClick={connectWallet}
+                                            className="w-full py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-[10px] uppercase tracking-widest hover:border-primary/30 hover:text-primary transition-all flex items-center justify-center gap-3"
+                                        >
+                                            <Wallet size={18} /> CONECTAR WALLET PRIMERO
+                                        </button>
+                                    ) : (
+                                        <div className="flex items-center justify-between bg-green-500/10 border border-green-500/30 px-5 py-3 rounded-2xl">
+                                            <div className="flex items-center gap-3">
+                                                <CheckCircle2 size={16} className="text-green-400" />
+                                                <div>
+                                                    <div className="text-[8px] text-green-400/70 uppercase font-black tracking-widest">Wallet Conectada</div>
+                                                    <div className="text-[10px] font-mono text-white">{connectedWallet.slice(0, 6)}...{connectedWallet.slice(-4)}</div>
+                                                </div>
                                             </div>
-                                            <div className="text-right">
-                                                <div className="text-3xl font-black text-white font-mono">$7,500</div>
-                                                <div className="text-[8px] text-white/20 uppercase font-black tracking-widest">USDC</div>
-                                            </div>
+                                            <button onClick={() => setConnectedWallet(null)} className="text-[8px] text-red-500 font-black uppercase hover:text-red-400">Cambiar</button>
                                         </div>
-                                        <div className="space-y-2 pt-4 border-t border-white/5">
-                                            {['Jet Privado Global First Class', 'Villa Piscina Infinita Premium', 'Concierge Personalizado 24/7', 'Casino Unlimited Pass', 'Stage VIP con Estrellas'].map(f => (
-                                                <div key={f} className="flex items-center gap-3 text-[10px] text-white/40">
-                                                    <div className="w-1 h-1 rounded-full bg-primary shadow-glow shrink-0" /> {f}
+                                    )}
+
+                                    {/* Success State */}
+                                    {payStatus === 'success' && (
+                                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="p-8 bg-green-500/10 border border-green-500/30 rounded-[28px] text-center space-y-4">
+                                            <CheckCircle2 size={56} className="text-green-400 mx-auto" />
+                                            <h4 className="text-xl font-black uppercase text-white">¡PAGO ENVIADO!</h4>
+                                            <p className="text-[10px] text-green-400/70 uppercase tracking-wider font-black">Membresía en proceso de activación</p>
+                                            {txHash && (
+                                                <div className="bg-black/40 border border-green-500/20 p-3 rounded-xl">
+                                                    <div className="text-[8px] text-white/20 uppercase font-black mb-1">Hash de Transacción</div>
+                                                    <div className="text-[8px] font-mono text-green-400 break-all">{txHash}</div>
+                                                </div>
+                                            )}
+                                            <p className="text-[9px] text-white/30 italic font-serif">Recibirá los detalles del destino en su email dentro de las próximas 24–72 horas.</p>
+                                        </motion.div>
+                                    )}
+
+                                    {/* Error States */}
+                                    {payStatus === 'rejected' && (
+                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-5 bg-yellow-500/5 border border-yellow-500/20 rounded-2xl flex items-center gap-4">
+                                            <AlertTriangle size={20} className="text-yellow-500 shrink-0" />
+                                            <p className="text-[10px] text-yellow-400/80 font-black uppercase">Transacción rechazada en wallet. Elija un plan e intente nuevamente.</p>
+                                        </motion.div>
+                                    )}
+                                    {payStatus === 'error' && (
+                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-5 bg-red-500/5 border border-red-500/20 rounded-2xl flex items-center gap-4">
+                                            <AlertTriangle size={20} className="text-red-500 shrink-0" />
+                                            <p className="text-[10px] text-red-400/80 font-black uppercase">Error en la transacción. Verifique fondos USDC y red de pago.</p>
+                                        </motion.div>
+                                    )}
+
+                                    {/* Plan Cards */}
+                                    {payStatus !== 'success' && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                            {PLANS.map(plan => (
+                                                <div key={plan.id} className={`relative p-6 rounded-[28px] border bg-black flex flex-col gap-5 transition-all duration-500 ${plan.color} ${plan.highlight ? 'shadow-[0_0_40px_rgba(212,175,55,0.15)]' : ''}`}>
+                                                    {plan.highlight && (
+                                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-black text-[8px] font-black uppercase tracking-widest rounded-full">
+                                                            MÁS POPULAR
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <div className="text-[8px] text-primary font-black uppercase tracking-[0.3em] mb-1">{plan.name}</div>
+                                                        <div className="text-3xl font-black font-mono text-white">${plan.price.toLocaleString()}</div>
+                                                        <div className="text-[8px] text-white/20 uppercase font-black tracking-wider">USDC</div>
+                                                    </div>
+                                                    <ul className="flex-1 space-y-2">
+                                                        {plan.features.map(f => (
+                                                            <li key={f} className="flex items-center gap-2 text-[9px] text-white/50">
+                                                                <div className="w-1 h-1 rounded-full bg-primary shrink-0" />{f}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                    <button
+                                                        onClick={() => handleSelectAndPay(plan)}
+                                                        disabled={paying}
+                                                        className={`w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${plan.highlight ? 'btn-primary shadow-glow' : 'bg-white/5 border border-white/10 hover:border-primary/30 hover:text-primary text-white'} ${paying ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                                    >
+                                                        {paying && selectedPlan?.id === plan.id
+                                                            ? <><RefreshCw size={14} className="animate-spin" /> PROCESANDO...</>
+                                                            : <><Zap size={14} /> PAGAR ${plan.price.toLocaleString()} USDC</>
+                                                        }
+                                                    </button>
                                                 </div>
                                             ))}
                                         </div>
-                                    </div>
+                                    )}
 
-                                    {/* Payment Instructions */}
-                                    <div className="p-6 md:p-8 bg-black border border-white/5 rounded-[32px] space-y-6">
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Instrucciones de Pago — USDC</h4>
-
-                                        <div className="space-y-3">
-                                            <div className="text-[9px] font-black text-white/20 uppercase tracking-widest">1. Red de Transferencia</div>
-                                            <div className="flex gap-3">
-                                                {['Ethereum (ERC-20)', 'Polygon', 'BNB Chain'].map((n, i) => (
-                                                    <div key={n} className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider ${i === 0 ? 'bg-primary/10 border border-primary/30 text-primary' : 'bg-white/5 border border-white/5 text-white/20'}`}>{n}</div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <div className="text-[9px] font-black text-white/20 uppercase tracking-widest">2. Dirección USDC de Destino</div>
-                                            <div className="bg-black/80 border border-white/10 p-4 rounded-2xl flex items-center justify-between gap-3">
-                                                <span className="text-[9px] md:text-[10px] font-mono text-white/60 break-all">{walletAddress}</span>
-                                                <button onClick={copyToClipboard} className={`p-2.5 rounded-xl transition-all shrink-0 ${copied ? 'bg-green-500/20 text-green-400' : 'bg-primary/10 hover:bg-primary/20 text-primary'}`}>
-                                                    {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
-                                                </button>
-                                            </div>
-                                            {copied && <div className="text-[9px] text-green-400 font-black uppercase tracking-widest text-center animate-pulse">✓ Dirección copiada al portapapeles</div>}
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <div className="text-[9px] font-black text-white/20 uppercase tracking-widest">3. Monto Exacto a Enviar</div>
-                                            <div className="bg-primary/5 border border-primary/20 p-5 rounded-2xl flex items-center justify-between">
-                                                <div>
-                                                    <div className="text-3xl font-black font-mono text-white">7,500.00</div>
-                                                    <div className="text-[9px] text-primary font-black uppercase tracking-wider">USDC — Token Oficial: 0xA0b...</div>
-                                                </div>
-                                                <div className="text-right text-white/20 text-[8px] uppercase font-black">
-                                                    <div>≈ $7,500 USD</div>
-                                                    <div className="text-[7px] mt-1">Tipo de cambio estable</div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="p-4 bg-red-500/5 border border-red-500/10 rounded-2xl">
-                                            <p className="text-[9px] text-red-400/60 font-bold uppercase leading-relaxed">
-                                                ⚠ Envíe SOLO USDC a esta dirección. Enviar otro token resultará en pérdida permanente e irrecuperable de sus fondos. Verifique la red antes de confirmar.
+                                    {/* Network note */}
+                                    {payStatus !== 'success' && (
+                                        <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
+                                            <p className="text-[8px] text-white/20 uppercase font-black tracking-wider leading-relaxed">
+                                                Red requerida: Ethereum Mainnet (ERC-20) · Token: USDC · El pago va directo al contrato titular del Santuario. Asegúrese de tener saldo suficiente en USDC + ETH para gas.
                                             </p>
                                         </div>
-                                    </div>
-
-                                    {/* Hash Confirmation */}
-                                    <div className="p-6 bg-white/[0.02] border border-white/5 rounded-[32px] space-y-4">
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Una vez realizado el pago — Enviar Comprobante</h4>
-                                        <input
-                                            type="text"
-                                            placeholder="Hash de la transacción (0x...)"
-                                            className="w-full bg-black border border-white/10 rounded-2xl p-4 text-xs font-mono focus:border-primary/50 outline-none transition-all text-white/60 placeholder:text-white/10"
-                                        />
-                                        <button className="w-full py-5 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-black text-[10px] uppercase tracking-[0.3em] hover:bg-primary/20 transition-all flex items-center justify-center gap-3">
-                                            <Zap size={16} /> ENVIAR COMPROBANTE AL EQUIPO
-                                        </button>
-                                        <p className="text-[8px] text-white/10 text-center uppercase tracking-wider font-black">Verificación manual en 1–6 horas posteriores al pago</p>
-                                    </div>
+                                    )}
                                 </motion.div>
                             )}
 
