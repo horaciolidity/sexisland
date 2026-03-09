@@ -37,11 +37,13 @@ import GroupChat from './components/GroupChat';
 import PlaneVisual from './components/PlaneVisual';
 import LoginModal from './components/LoginModal';
 import UserPanel from './components/UserPanel';
+import RegistrationModal from './components/RegistrationModal';
 import './App.css';
 
 function App() {
   const [showChat, setShowChat] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
   const [showUserPanel, setShowUserPanel] = useState(false);
   const [user, setUser] = useState(null);
   const [scrolled, setScrolled] = useState(false);
@@ -238,7 +240,7 @@ function App() {
             <div className="flex flex-col sm:flex-row gap-4 md:gap-8 justify-center items-center px-4">
               <button
                 className="w-full sm:w-auto group px-8 md:px-12 py-5 md:py-7 rounded-2xl bg-primary text-black font-black text-[10px] md:text-xs tracking-[0.3em] md:tracking-[0.4em] uppercase hover:scale-[1.03] transition-all shadow-glow relative overflow-hidden"
-                onClick={() => document.getElementById('planes').scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => setShowRegister(true)}
               >
                 SOLICITAR INVITACIÓN <ArrowRight size={18} className="inline ml-2 md:ml-3" />
               </button>
@@ -265,17 +267,53 @@ function App() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
-            <StarCard name="Sasha Grey" img="/sasha.png" vibe="THE LEGEND" desc="Un icono del cine adulto que redefine la elegancia y la audacia." />
-            <StarCard name="Angela White" img="/angela.png" vibe="THE QUEEN" desc="Elegancia suprema y un magnetismo que domina el Santuario." />
-            <StarCard name="Riley Reid" img="/riley.png" vibe="VIBRANT" desc="Energía pura e inagotable. La estrella de nuestras fiestas en alta mar." />
-            <StarCard name="Lana Rhoades" img="/lana.png" vibe="ELITE" desc="Belleza cinematográfica seleccionada para los gustos más exigentes." />
-            <StarCard name="Adriana Chechik" img="/adriana.png" vibe="WILD SOUL" desc="Adrenalina y audacia total para una experiencia sin límites." />
-            <StarCard name="Abella Danger" img="/abella.png" vibe="POWERFUL" desc="Una presencia imponente que cautiva a todos los invitados." />
+            <StarCard
+              name="Sasha Grey"
+              img="/sasha.png"
+              vibe="THE LEGEND"
+              desc="Un icono del cine adulto que redefine la elegancia y la audacia."
+              onReserve={() => setShowRegister(true)}
+            />
+            <StarCard
+              name="Angela White"
+              img="/angela.png"
+              vibe="THE QUEEN"
+              desc="Elegancia suprema y un magnetismo que domina el Santuario."
+              onReserve={() => setShowRegister(true)}
+            />
+            <StarCard
+              name="Riley Reid"
+              img="/riley.png"
+              vibe="VIBRANT"
+              desc="Energía pura e inagotable. La estrella de nuestras fiestas en alta mar."
+              onReserve={() => setShowRegister(true)}
+            />
+            <StarCard
+              name="Lana Rhoades"
+              img="/lana.png"
+              vibe="ELITE"
+              desc="Belleza cinematográfica seleccionada para los gustos más exigentes."
+              onReserve={() => setShowRegister(true)}
+            />
+            <StarCard
+              name="Adriana Chechik"
+              img="/adriana.png"
+              vibe="WILD SOUL"
+              desc="Adrenalina y audacia total para una experiencia sin límites."
+              onReserve={() => setShowRegister(true)}
+            />
+            <StarCard
+              name="Abella Danger"
+              img="/abella.png"
+              vibe="POWERFUL"
+              desc="Una presencia imponente que cautiva a todos los invitados."
+              onReserve={() => setShowRegister(true)}
+            />
           </div>
 
           <div className="mt-12 md:mt-20 text-center px-4">
             <button
-              onClick={() => user ? setShowUserPanel(true) : setShowLogin(true)}
+              onClick={() => setShowRegister(true)}
               className="w-full sm:w-auto px-8 md:px-12 py-5 md:py-6 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-black text-[10px] md:text-xs tracking-[0.3em] md:tracking-[0.5em] uppercase hover:bg-primary hover:text-black transition-all group md:scale-110 shadow-glow"
             >
               VER CATÁLOGO DE 60 ESTRELLAS <Flame size={18} className="inline ml-2 md:ml-3 animate-pulse" />
@@ -365,20 +403,20 @@ function App() {
             name="Platinum Star"
             price="$5,200"
             features={["Vuelo Charter VVIP", "Suite Mar Deluxe", "Acceso Total Fiestas", "60 Estrellas Adultas", "Crédito Casino $500"]}
-            onSelect={() => user ? setShowUserPanel(true) : setShowLogin(true)}
+            onSelect={() => setShowRegister(true)}
           />
           <PlanCard
             name="Diamond Imperial"
             price="$7,500"
             features={["Jet Privado Global First", "Villa Piscina Infinita", "Concierge Personalizado", "Casino Unlimited Pass", "Stage VIP con Estrellas", "Reserva Prioritaria"]}
             highlight
-            onSelect={() => user ? setShowUserPanel(true) : setShowLogin(true)}
+            onSelect={() => setShowRegister(true)}
           />
           <PlanCard
             name="Sovereign Group"
             price="Custom"
             features={["Mansión Privada", "Seguridad Particular", "Chef de Élite", "Fiesta Privada Isla", "Logística Estelar Ilimitada"]}
-            onSelect={() => user ? setShowUserPanel(true) : setShowLogin(true)}
+            onSelect={() => setShowRegister(true)}
           />
         </div>
       </section>
@@ -386,6 +424,7 @@ function App() {
       {/* Overlays */}
       <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} onLogin={handleLogin} />
       <UserPanel isOpen={showUserPanel} onClose={() => setShowUserPanel(false)} user={user} onLogout={handleLogout} />
+      <RegistrationModal isOpen={showRegister} onClose={() => setShowRegister(false)} />
 
       <AnimatePresence>
         {showChat && (
@@ -527,7 +566,7 @@ function BottomNavItem({ icon, label, href, onClick }) {
   );
 }
 
-function StarCard({ name, img, vibe, desc }) {
+function StarCard({ name, img, vibe, desc, onReserve }) {
   return (
     <motion.div whileHover={{ y: -10 }} className="group relative rounded-[40px] md:rounded-[50px] overflow-hidden border border-white/10 hover:border-primary/40 transition-all duration-700 bg-black shadow-2xl">
       <div className="aspect-[4/6] overflow-hidden relative">
@@ -539,7 +578,7 @@ function StarCard({ name, img, vibe, desc }) {
           </button>
         </div>
         <div className="absolute inset-x-0 bottom-0 p-8 z-20 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-          <button className="w-full py-4 bg-primary text-black font-black text-[9px] uppercase tracking-widest rounded-2xl shadow-glow">
+          <button onClick={onReserve} className="w-full py-4 bg-primary text-black font-black text-[9px] uppercase tracking-widest rounded-2xl shadow-glow">
             RESERVAR ENCUENTRO
           </button>
         </div>
