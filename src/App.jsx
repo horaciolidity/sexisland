@@ -371,6 +371,39 @@ function App() {
         )}
       </div>
 
+      {/* SPONSORS SECTION */}
+      <section className="py-20 md:py-32 border-t border-white/5 bg-[#010203]">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16 md:mb-20">
+            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.6em] text-primary/40 block mb-4">Official Partners</span>
+            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter gold-text font-serif italic italic-luxury">Global Logistics & Luxury Assets</h2>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-12 md:gap-24 opacity-30 grayscale hover:grayscale-0 transition-all duration-1000">
+            <div className="flex flex-col items-center gap-2 group cursor-pointer transition-all duration-500">
+              <div className="text-2xl md:text-4xl font-black tracking-tighter text-white group-hover:text-primary transition-colors">EXPE<span className="text-primary italic">DIA</span></div>
+              <p className="text-[7px] font-black uppercase tracking-[0.4em] text-white/20 uppercase whitespace-nowrap">Elite Travel Partner</p>
+            </div>
+            <div className="flex flex-col items-center gap-2 group cursor-pointer transition-all duration-500">
+              <div className="text-2xl md:text-4xl font-black tracking-tighter text-white group-hover:text-primary transition-colors">TRIV<span className="text-primary">AGO</span></div>
+              <p className="text-[7px] font-black uppercase tracking-[0.4em] text-white/20 uppercase whitespace-nowrap">Global Assets Search</p>
+            </div>
+            <div className="flex flex-col items-center gap-2 group cursor-pointer transition-all duration-500">
+              <div className="text-2xl md:text-4xl font-black tracking-tighter text-white group-hover:text-primary transition-colors italic">Booking<span className="text-primary">.com</span></div>
+              <p className="text-[7px] font-black uppercase tracking-[0.4em] text-white/20 uppercase whitespace-nowrap">Villa Direct Access</p>
+            </div>
+            <div className="flex flex-col items-center gap-2 group cursor-pointer transition-all duration-500">
+              <div className="text-2xl md:text-4xl font-black tracking-tighter text-white group-hover:text-primary transition-colors">KAY<span className="text-primary">AK</span></div>
+              <p className="text-[7px] font-black uppercase tracking-[0.4em] text-white/20 uppercase whitespace-nowrap">Charter Logistic</p>
+            </div>
+            <div className="flex flex-col items-center gap-2 group cursor-pointer transition-all duration-500">
+              <div className="text-2xl md:text-4xl font-black tracking-tighter text-white group-hover:text-primary transition-colors uppercase">FOUR<span className="text-primary">SEASONS</span></div>
+              <p className="text-[7px] font-black uppercase tracking-[0.4em] text-white/20 uppercase whitespace-nowrap">Private Residency</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="pt-20 pb-16 md:pb-10 border-t border-white/5 bg-black text-center px-6">
         <div className="text-3xl md:text-4xl font-black gold-text mb-4 italic-luxury font-serif">SANTUARIO</div>
