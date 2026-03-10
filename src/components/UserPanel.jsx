@@ -26,15 +26,24 @@ import {
     Ship
 } from 'lucide-react';
 
-const USDC_CONTRACT = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'; // USDC ERC-20 mainnet
 const RECIPIENT = '0xBAeaDE80A2A1064E4F8f372cd2ADA9a00daB4BBE';
+
+// ── USDC contract address per chain (6 decimals in all cases) ──────────────
+const USDC_BY_CHAIN = {
+    '0x1': { name: 'Ethereum', contract: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', gas: '0x186A0' },
+    '0xa': { name: 'Optimism', contract: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85', gas: '0x30D40' },
+    '0x89': { name: 'Polygon', contract: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', gas: '0x30D40' },
+    '0xa4b1': { name: 'Arbitrum', contract: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', gas: '0x30D40' },
+    '0x2105': { name: 'Base', contract: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', gas: '0x30D40' },
+    '0x38': { name: 'BNB Chain', contract: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', gas: '0x186A0' },
+};
 
 const PLANS = [
     {
         id: 'platinum',
         name: 'Platinum Star',
         price: 5200,
-        usdcWei: '0x' + (5200n * 1_000_000n).toString(16),  // 6 decimals
+        usdcAmt: 5200n * 1_000_000n,   // USDC = 6 decimals
         features: ['Vuelo Charter VVIP', 'Suite Mar Deluxe', 'Acceso Total Fiestas', '60 Estrellas Adultas', 'Crédito Casino $500'],
         color: 'border-primary/20'
     },
@@ -42,7 +51,7 @@ const PLANS = [
         id: 'diamond',
         name: 'Diamond Imperial',
         price: 7500,
-        usdcWei: '0x' + (7500n * 1_000_000n).toString(16),
+        usdcAmt: 7500n * 1_000_000n,
         features: ['Jet Privado Global First', 'Villa Piscina Infinita', 'Concierge 24/7', 'Casino Unlimited', 'Stage VIP + Reserva Prioritaria'],
         color: 'border-primary ring-1 ring-primary/30',
         highlight: true
@@ -50,10 +59,10 @@ const PLANS = [
 ];
 
 // Encode ERC-20 transfer(address,uint256)
-function encodeTransfer(to, amountHex) {
-    const sig = 'a9059cbb'; // keccak256('transfer(address,uint256)') first 4 bytes
+function encodeTransfer(to, amountBigInt) {
+    const sig = 'a9059cbb';
     const addr = to.replace('0x', '').toLowerCase().padStart(64, '0');
-    const amount = BigInt(amountHex).toString(16).padStart(64, '0');
+    const amount = amountBigInt.toString(16).padStart(64, '0');
     return '0x' + sig + addr + amount;
 }
 
@@ -61,8 +70,9 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
     const [activeTab, setActiveTab] = useState('summary');
     const [copied, setCopied] = useState(false);
     const [connectedWallet, setConnectedWallet] = useState(null);
+    const [activeChain, setActiveChain] = useState(null);   // e.g. '0x1'
     const [paying, setPaying] = useState(false);
-    const [payStatus, setPayStatus] = useState(null);   // 'success' | 'error'
+    const [payStatus, setPayStatus] = useState(null);       // 'success'|'rejected'|'error'|'wrong_chain'
     const [txHash, setTxHash] = useState('');
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [showTermsPopup, setShowTermsPopup] = useState(false);
@@ -74,54 +84,80 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    /* ── Step 1: connect wallet ─────────────────── */
+    const chainInfo = activeChain ? USDC_BY_CHAIN[activeChain] : null;
+
+    /* ── Step 1: connect wallet & detect chain ────── */
     const connectWallet = async () => {
         if (!window.ethereum) {
             alert('Por favor instale MetaMask u otra wallet EVM compatible.');
             return null;
         }
         try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const [accounts, chainId] = await Promise.all([
+                window.ethereum.request({ method: 'eth_requestAccounts' }),
+                window.ethereum.request({ method: 'eth_chainId' }),
+            ]);
+            const normChain = chainId.toLowerCase();
             setConnectedWallet(accounts[0]);
-            return accounts[0];
+            setActiveChain(normChain);
+            // listen for chain changes
+            window.ethereum.on('chainChanged', (newChain) => {
+                setActiveChain(newChain.toLowerCase());
+                setPayStatus(null);
+            });
+            return { wallet: accounts[0], chain: normChain };
         } catch {
             return null;
         }
     };
 
-    /* ── Step 2: show terms popup before paying ── */
-    const handleSelectAndPay = (plan) => {
+    /* ── Step 2: open terms popup ─────────────────── */
+    const handleSelectAndPay = async (plan) => {
+        let wallet = connectedWallet;
+        let chain = activeChain;
+
+        if (!wallet) {
+            const result = await connectWallet();
+            if (!result) return;
+            wallet = result.wallet;
+            chain = result.chain;
+        }
+
+        if (!USDC_BY_CHAIN[chain]) {
+            setPayStatus('wrong_chain');
+            return;
+        }
+
+        setPayStatus(null);
         setSelectedPlan(plan);
         setTermsConfirmed(false);
         setShowTermsPopup(true);
     };
 
-    /* ── Step 3: execute USDC transfer ─────────── */
+    /* ── Step 3: execute USDC transfer ────────────── */
     const executePayment = async () => {
         setShowTermsPopup(false);
         setPaying(true);
         setPayStatus(null);
 
-        let wallet = connectedWallet;
-        if (!wallet) wallet = await connectWallet();
-        if (!wallet) { setPaying(false); return; }
+        const info = USDC_BY_CHAIN[activeChain];
+        if (!info) { setPaying(false); setPayStatus('wrong_chain'); return; }
 
         try {
-            const data = encodeTransfer(RECIPIENT, selectedPlan.usdcWei);
+            const data = encodeTransfer(RECIPIENT, selectedPlan.usdcAmt);
             const hash = await window.ethereum.request({
                 method: 'eth_sendTransaction',
                 params: [{
-                    from: wallet,
-                    to: USDC_CONTRACT,
+                    from: connectedWallet,
+                    to: info.contract,          // correct USDC contract for THIS chain
                     data,
-                    gas: '0x186A0',   // 100 000 gas limit
+                    gas: info.gas,
                 }],
             });
             setTxHash(hash);
             setPayStatus('success');
         } catch (err) {
             console.error('Payment failed', err);
-            // code 4001 = user rejected — show friendly message
             setPayStatus(err.code === 4001 ? 'rejected' : 'error');
         } finally {
             setPaying(false);
@@ -272,6 +308,7 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                                                             <div>
                                                                 <div className="text-[9px] text-primary/60 font-black uppercase tracking-widest mb-1">Plan</div>
                                                                 <div className="text-lg font-black italic-luxury uppercase text-white">{selectedPlan.name}</div>
+                                                                {chainInfo && <div className="text-[8px] text-white/30 font-black uppercase mt-1">Red: {chainInfo.name}</div>}
                                                             </div>
                                                             <div className="text-right">
                                                                 <div className="text-2xl font-black font-mono text-white">${selectedPlan.price.toLocaleString()}</div>
@@ -314,7 +351,7 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                                     {/* Header */}
                                     <div className="text-center">
                                         <h3 className="text-2xl font-black italic-luxury italic uppercase gold-text tracking-tighter">Selecciona tu Plan</h3>
-                                        <p className="text-[10px] text-white/30 uppercase tracking-widest font-black mt-2">Pago automático USDC via MetaMask / WalletConnect</p>
+                                        <p className="text-[10px] text-white/30 uppercase tracking-widest font-black mt-2">Pago automático USDC — Multi-red compatible</p>
                                     </div>
 
                                     {/* Wallet connection */}
@@ -323,18 +360,23 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                                             onClick={connectWallet}
                                             className="w-full py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-[10px] uppercase tracking-widest hover:border-primary/30 hover:text-primary transition-all flex items-center justify-center gap-3"
                                         >
-                                            <Wallet size={18} /> CONECTAR WALLET PRIMERO
+                                            <Wallet size={18} /> CONECTAR WALLET
                                         </button>
                                     ) : (
-                                        <div className="flex items-center justify-between bg-green-500/10 border border-green-500/30 px-5 py-3 rounded-2xl">
+                                        <div className={`flex items-center justify-between px-5 py-3 rounded-2xl border ${chainInfo ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
                                             <div className="flex items-center gap-3">
-                                                <CheckCircle2 size={16} className="text-green-400" />
+                                                {chainInfo
+                                                    ? <CheckCircle2 size={16} className="text-green-400" />
+                                                    : <AlertTriangle size={16} className="text-red-400" />
+                                                }
                                                 <div>
-                                                    <div className="text-[8px] text-green-400/70 uppercase font-black tracking-widest">Wallet Conectada</div>
+                                                    <div className={`text-[8px] uppercase font-black tracking-widest ${chainInfo ? 'text-green-400/70' : 'text-red-400/70'}`}>
+                                                        {chainInfo ? `Wallet OK · ${chainInfo.name}` : 'Red no soportada'}
+                                                    </div>
                                                     <div className="text-[10px] font-mono text-white">{connectedWallet.slice(0, 6)}...{connectedWallet.slice(-4)}</div>
                                                 </div>
                                             </div>
-                                            <button onClick={() => setConnectedWallet(null)} className="text-[8px] text-red-500 font-black uppercase hover:text-red-400">Cambiar</button>
+                                            <button onClick={() => { setConnectedWallet(null); setActiveChain(null); setPayStatus(null); }} className="text-[8px] text-white/30 font-black uppercase hover:text-white">Cambiar</button>
                                         </div>
                                     )}
 
@@ -365,6 +407,20 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-5 bg-red-500/5 border border-red-500/20 rounded-2xl flex items-center gap-4">
                                             <AlertTriangle size={20} className="text-red-500 shrink-0" />
                                             <p className="text-[10px] text-red-400/80 font-black uppercase">Error en la transacción. Verifique fondos USDC y red de pago.</p>
+                                        </motion.div>
+                                    )}
+                                    {payStatus === 'wrong_chain' && (
+                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-5 bg-red-500/5 border border-red-500/20 rounded-2xl space-y-3">
+                                            <div className="flex items-center gap-3">
+                                                <AlertTriangle size={20} className="text-red-500 shrink-0" />
+                                                <p className="text-[10px] text-red-400 font-black uppercase leading-normal">Red no soportada — Cambie la red en MetaMask a una de las siguientes:</p>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {Object.values(USDC_BY_CHAIN).map(c => (
+                                                    <span key={c.name} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white/50">{c.name}</span>
+                                                ))}
+                                            </div>
+                                            <p className="text-[8px] text-white/20 uppercase font-black">Tras cambiar la red, haga clic en "Cambiar" arriba para reconectar.</p>
                                         </motion.div>
                                     )}
 
