@@ -211,8 +211,8 @@ function App() {
       <header className="relative min-h-[90vh] md:min-h-screen flex items-center justify-center overflow-hidden pt-24 md:pt-20 px-6 md:px-8">
         <div className="absolute inset-0 z-0">
           <img
-            src="/sasha.png"
-            className="w-full h-full object-cover opacity-60 md:opacity-70 mix-blend-screen grayscale hover:grayscale-0 transition-all duration-[3s] scale-110 md:scale-105"
+            src="/mia.png"
+            className="w-full h-full object-cover opacity-60 md:opacity-70 mix-blend-screen scale-110 md:scale-105"
             alt="Elite Adult Sovereign Experience"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#05070A] via-[#05070A]/85 to-transparent"></div>
@@ -269,47 +269,40 @@ function App() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
             <StarCard
               name="Sasha Grey"
-              img="/sasha.png"
+              img="/emily.png"
               vibe="THE LEGEND"
               badge="TOP STAR"
-              desc="Un icono del cine adulto que redefine la elegancia y la audacia."
+              desc="Un icono del cine adulto que redefine la elegancia y la audacia en el Santuario."
               onReserve={() => setShowRegister(true)}
             />
             <StarCard
               name="Angela White"
-              img="/angela.png"
+              img="/gabie.png"
               vibe="THE QUEEN"
               badge="TOP STAR"
-              desc="Elegancia suprema y un magnetismo que domina el Santuario."
+              desc="Elegancia suprema y un magnetismo que domina cada segundo de su estancia."
               onReserve={() => setShowRegister(true)}
             />
             <StarCard
               name="Riley Reid"
-              img="/riley.png"
+              img="/dani.png"
               vibe="VIBRANT"
               badge="TOP STAR"
-              desc="Energía pura e inagotable. La estrella de nuestras fiestas en alta mar."
+              desc="Energía pura e inagotable. La estrella de nuestras fiestas más exclusivas."
               onReserve={() => setShowRegister(true)}
             />
             <StarCard
               name="Lana Rhoades"
-              img="/lana.png"
+              img="/cory.png"
               vibe="ELITE"
-              desc="Belleza cinematográfica seleccionada para los gustos más exigentes."
+              desc="Belleza cinematográfica seleccionada para los gustos más exigentes del mundo."
               onReserve={() => setShowRegister(true)}
             />
             <StarCard
               name="Adriana Chechik"
-              img="/adriana.png"
+              img="/kendra.png"
               vibe="WILD SOUL"
-              desc="Adrenalina y audacia total para una experiencia sin límites."
-              onReserve={() => setShowRegister(true)}
-            />
-            <StarCard
-              name="Abella Danger"
-              img="/abella.png"
-              vibe="POWERFUL"
-              desc="Una presencia imponente que cautiva a todos los invitados."
+              desc="Adrenalina y audacia total para una experiencia sin límites ni censura."
               onReserve={() => setShowRegister(true)}
             />
             <StarCard
@@ -317,47 +310,7 @@ function App() {
               img="/mia.png"
               vibe="ANGELIC"
               badge="NUEVA"
-              desc="Una presencia celestial que transforma cada momento en algo mágico."
-              onReserve={() => setShowRegister(true)}
-            />
-            <StarCard
-              name="Emily Willis"
-              img="/emily.png"
-              vibe="SOPHISTICATED"
-              badge="NUEVA"
-              desc="Elegancia natural y una mirada que detiene el tiempo."
-              onReserve={() => setShowRegister(true)}
-            />
-            <StarCard
-              name="Gabie Carter"
-              img="/gabie.png"
-              vibe="EXQUISITE"
-              badge="NUEVA"
-              desc="Belleza clásica con un toque moderno y provocador."
-              onReserve={() => setShowRegister(true)}
-            />
-            <StarCard
-              name="Dani Daniels"
-              img="/dani.png"
-              vibe="ARTISTIC"
-              badge="NUEVA"
-              desc="Creatividad y pasión se unen en una de las estrellas más icónicas."
-              onReserve={() => setShowRegister(true)}
-            />
-            <StarCard
-              name="Cory Chase"
-              img="/cory.png"
-              vibe="MATURE ELITE"
-              badge="NUEVA"
-              desc="Experiencia y sofisticación para los miembros más refinados."
-              onReserve={() => setShowRegister(true)}
-            />
-            <StarCard
-              name="Kendra Lust"
-              img="/kendra.png"
-              vibe="DYNAMITE"
-              badge="NUEVA"
-              desc="Energía explosiva y una presencia que domina cualquier escenario."
+              desc="Una presencia celestial que transforma cada momento en algo mágico y eterno."
               onReserve={() => setShowRegister(true)}
             />
             <StarCard
@@ -388,21 +341,25 @@ function App() {
             <ServiceItem
               icon={<Dices className="text-primary" size={32} />}
               title="Casino Clandestino"
+              img="/angela.png"
               desc="Apuestas de alto nivel sin límites, reservado solo para poseedores de la Diamond Villa."
             />
             <ServiceItem
               icon={<UtensilsCrossed className="text-primary" size={32} />}
               title="Gastronomía Molecular"
+              img="/lana.png"
               desc="Chefs con estrellas Michelin fusionando el placer visual con el gusto más exigente."
             />
             <ServiceItem
               icon={<Mic2 className="text-primary" size={32} />}
               title="Performance Elite"
+              img="/abella.png"
               desc="Shows privados diseñados por directores de cine adulto ganadores de premios AVN."
             />
             <ServiceItem
               icon={<ShieldCheck className="text-primary" size={32} />}
               title="Privacidad Absoluta"
+              img="/adriana.png"
               desc="Seguridad militar y zonas No-Phone para que su realidad permanezca en secreto."
             />
           </div>
@@ -700,14 +657,23 @@ function TestimonialCard({ text, author, highlight }) {
   );
 }
 
-function ServiceItem({ icon, title, desc }) {
+function ServiceItem({ icon, title, desc, img }) {
   return (
-    <div className="group p-8 glass-morphism rounded-[40px] border-white/5 hover:border-primary/20 transition-all duration-500">
-      <div className="mb-6 p-4 bg-primary/5 rounded-2xl w-fit group-hover:bg-primary group-hover:text-black transition-all">
-        {icon}
+    <div className="group relative p-8 h-full min-h-[400px] flex flex-col justify-end overflow-hidden rounded-[40px] border border-white/5 hover:border-primary/40 transition-all duration-700 bg-black shadow-2xl">
+      {img && (
+        <div className="absolute inset-0 z-0">
+          <img src={img} className="w-full h-full object-cover opacity-30 group-hover:opacity-60 transition-all duration-1000 group-hover:scale-110" alt={title} />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
+        </div>
+      )}
+
+      <div className="relative z-10">
+        <div className="mb-6 p-4 bg-primary/10 backdrop-blur-md border border-primary/20 rounded-2xl w-fit group-hover:bg-primary group-hover:text-black transition-all duration-500">
+          {icon}
+        </div>
+        <h3 className="text-2xl font-black uppercase tracking-widest mb-4 italic font-serif gold-text leading-tight">{title}</h3>
+        <p className="text-white/40 text-xs md:text-sm leading-relaxed group-hover:text-white/80 transition-colors duration-500 font-light">{desc}</p>
       </div>
-      <h3 className="text-xl font-black uppercase tracking-widest mb-4 italic font-serif gold-text">{title}</h3>
-      <p className="text-white/30 text-xs leading-relaxed group-hover:text-white/60 transition-colors">{desc}</p>
     </div>
   );
 }
