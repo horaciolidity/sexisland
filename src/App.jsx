@@ -271,6 +271,7 @@ function App() {
               name="Sasha Grey"
               img="/sasha.png"
               vibe="THE LEGEND"
+              badge="TOP STAR"
               desc="Un icono del cine adulto que redefine la elegancia y la audacia."
               onReserve={() => setShowRegister(true)}
             />
@@ -278,6 +279,7 @@ function App() {
               name="Angela White"
               img="/angela.png"
               vibe="THE QUEEN"
+              badge="TOP STAR"
               desc="Elegancia suprema y un magnetismo que domina el Santuario."
               onReserve={() => setShowRegister(true)}
             />
@@ -285,6 +287,7 @@ function App() {
               name="Riley Reid"
               img="/riley.png"
               vibe="VIBRANT"
+              badge="TOP STAR"
               desc="Energía pura e inagotable. La estrella de nuestras fiestas en alta mar."
               onReserve={() => setShowRegister(true)}
             />
@@ -307,6 +310,62 @@ function App() {
               img="/abella.png"
               vibe="POWERFUL"
               desc="Una presencia imponente que cautiva a todos los invitados."
+              onReserve={() => setShowRegister(true)}
+            />
+            <StarCard
+              name="Mia Malkova"
+              img="/mia.png"
+              vibe="ANGELIC"
+              badge="NUEVA"
+              desc="Una presencia celestial que transforma cada momento en algo mágico."
+              onReserve={() => setShowRegister(true)}
+            />
+            <StarCard
+              name="Emily Willis"
+              img="/emily.png"
+              vibe="SOPHISTICATED"
+              badge="NUEVA"
+              desc="Elegancia natural y una mirada que detiene el tiempo."
+              onReserve={() => setShowRegister(true)}
+            />
+            <StarCard
+              name="Gabie Carter"
+              img="/gabie.png"
+              vibe="EXQUISITE"
+              badge="NUEVA"
+              desc="Belleza clásica con un toque moderno y provocador."
+              onReserve={() => setShowRegister(true)}
+            />
+            <StarCard
+              name="Dani Daniels"
+              img="/dani.png"
+              vibe="ARTISTIC"
+              badge="NUEVA"
+              desc="Creatividad y pasión se unen en una de las estrellas más icónicas."
+              onReserve={() => setShowRegister(true)}
+            />
+            <StarCard
+              name="Cory Chase"
+              img="/cory.png"
+              vibe="MATURE ELITE"
+              badge="NUEVA"
+              desc="Experiencia y sofisticación para los miembros más refinados."
+              onReserve={() => setShowRegister(true)}
+            />
+            <StarCard
+              name="Kendra Lust"
+              img="/kendra.png"
+              vibe="DYNAMITE"
+              badge="NUEVA"
+              desc="Energía explosiva y una presencia que domina cualquier escenario."
+              onReserve={() => setShowRegister(true)}
+            />
+            <StarCard
+              name="Gianna Dior"
+              img="/gianna.png"
+              vibe="DIAMOND"
+              badge="NUEVA"
+              desc="Brillo puro y una sensualidad que cautiva desde el primer segundo."
               onReserve={() => setShowRegister(true)}
             />
           </div>
@@ -566,14 +625,21 @@ function BottomNavItem({ icon, label, href, onClick }) {
   );
 }
 
-function StarCard({ name, img, vibe, desc, onReserve }) {
+function StarCard({ name, img, vibe, desc, badge, onReserve }) {
   return (
     <motion.div whileHover={{ y: -10 }} className="group relative rounded-[40px] md:rounded-[50px] overflow-hidden border border-white/10 hover:border-primary/40 transition-all duration-700 bg-black shadow-2xl">
       <div className="aspect-[4/6] overflow-hidden relative">
         <img src={img} className="w-full h-full object-cover transition-all duration-[2s] group-hover:scale-110" alt={name} />
-        <div className="absolute inset-x-4 md:inset-x-6 top-4 md:top-6 flex justify-between items-center w-full pr-8">
-          <span className="px-3 md:px-4 py-1 md:py-1.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[8px] md:text-[9px] font-black text-primary tracking-widest">{vibe}</span>
-          <button className="p-2 md:p-3 bg-primary/20 backdrop-blur-md border border-primary/30 rounded-full text-primary hover:bg-primary hover:text-black transition-all">
+        <div className="absolute inset-x-4 md:inset-x-6 top-4 md:top-6 flex justify-between items-center w-[calc(100%-2rem)]">
+          <div className="flex gap-2">
+            <span className="px-3 md:px-4 py-1 md:py-1.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[8px] md:text-[9px] font-black text-primary tracking-widest">{vibe}</span>
+            {badge && (
+              <span className="px-3 md:px-4 py-1 md:py-1.5 bg-primary text-black rounded-full text-[8px] md:text-[9px] font-black tracking-widest animate-pulse shadow-glow">
+                {badge}
+              </span>
+            )}
+          </div>
+          <button className="p-2 md:p-3 bg-black/40 backdrop-blur-md border border-white/10 rounded-full text-white/60 hover:text-primary hover:border-primary/40 transition-all">
             <Eye size={16} />
           </button>
         </div>
