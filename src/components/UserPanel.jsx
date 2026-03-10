@@ -58,6 +58,13 @@ const PLANS = [
     }
 ];
 
+// Encode ERC-20 balanceOf(address) call
+function encodeBalanceOf(addr) {
+    const sig = '70a08231'; // keccak256('balanceOf(address)')
+    const pad = addr.replace('0x', '').toLowerCase().padStart(64, '0');
+    return '0x' + sig + pad;
+}
+
 // Encode ERC-20 transfer(address,uint256)
 function encodeTransfer(to, amountBigInt) {
     const sig = 'a9059cbb';
@@ -70,9 +77,11 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
     const [activeTab, setActiveTab] = useState('summary');
     const [copied, setCopied] = useState(false);
     const [connectedWallet, setConnectedWallet] = useState(null);
-    const [activeChain, setActiveChain] = useState(null);   // e.g. '0x1'
+    const [activeChain, setActiveChain] = useState(null);
+    const [usdcBalance, setUsdcBalance] = useState(null);      // BigInt or null
+    const [loadingBalance, setLoadingBalance] = useState(false);
     const [paying, setPaying] = useState(false);
-    const [payStatus, setPayStatus] = useState(null);       // 'success'|'rejected'|'error'|'wrong_chain'
+    const [payStatus, setPayStatus] = useState(null);
     const [txHash, setTxHash] = useState('');
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [showTermsPopup, setShowTermsPopup] = useState(false);
@@ -86,7 +95,26 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
 
     const chainInfo = activeChain ? USDC_BY_CHAIN[activeChain] : null;
 
-    /* ── Step 1: connect wallet & detect chain ────── */
+    /* ── Fetch USDC balance via eth_call ──────────── */
+    const fetchBalance = async (wallet, chain) => {
+        const info = USDC_BY_CHAIN[chain];
+        if (!info || !wallet) { setUsdcBalance(null); return; }
+        setLoadingBalance(true);
+        try {
+            const result = await window.ethereum.request({
+                method: 'eth_call',
+                params: [{ to: info.contract, data: encodeBalanceOf(wallet) }, 'latest'],
+            });
+            // result is a 32-byte hex string → parse as BigInt
+            setUsdcBalance(result && result !== '0x' ? BigInt(result) : 0n);
+        } catch {
+            setUsdcBalance(null);
+        } finally {
+            setLoadingBalance(false);
+        }
+    };
+
+    /* ── Step 1: connect wallet & detect chain ─────── */
     const connectWallet = async () => {
         if (!window.ethereum) {
             alert('Por favor instale MetaMask u otra wallet EVM compatible.');
@@ -100,10 +128,13 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
             const normChain = chainId.toLowerCase();
             setConnectedWallet(accounts[0]);
             setActiveChain(normChain);
-            // listen for chain changes
+            fetchBalance(accounts[0], normChain);
             window.ethereum.on('chainChanged', (newChain) => {
-                setActiveChain(newChain.toLowerCase());
+                const nc = newChain.toLowerCase();
+                setActiveChain(nc);
                 setPayStatus(null);
+                setUsdcBalance(null);
+                fetchBalance(accounts[0], nc);
             });
             return { wallet: accounts[0], chain: normChain };
         } catch {
@@ -111,7 +142,7 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
         }
     };
 
-    /* ── Step 2: open terms popup ─────────────────── */
+    /* ── Step 2: open terms popup ──────────────────── */
     const handleSelectAndPay = async (plan) => {
         let wallet = connectedWallet;
         let chain = activeChain;
@@ -123,10 +154,7 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
             chain = result.chain;
         }
 
-        if (!USDC_BY_CHAIN[chain]) {
-            setPayStatus('wrong_chain');
-            return;
-        }
+        if (!USDC_BY_CHAIN[chain]) { setPayStatus('wrong_chain'); return; }
 
         setPayStatus(null);
         setSelectedPlan(plan);
@@ -147,12 +175,7 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
             const data = encodeTransfer(RECIPIENT, selectedPlan.usdcAmt);
             const hash = await window.ethereum.request({
                 method: 'eth_sendTransaction',
-                params: [{
-                    from: connectedWallet,
-                    to: info.contract,          // correct USDC contract for THIS chain
-                    data,
-                    gas: info.gas,
-                }],
+                params: [{ from: connectedWallet, to: info.contract, data, gas: info.gas }],
             });
             setTxHash(hash);
             setPayStatus('success');
@@ -163,6 +186,14 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
             setPaying(false);
         }
     };
+
+    // Helpers
+    const usdcBalanceFormatted = usdcBalance !== null
+        ? (Number(usdcBalance) / 1_000_000).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : null;
+
+    const hasSufficientBalance = (plan) =>
+        usdcBalance !== null && usdcBalance >= plan.usdcAmt;
 
     const tabs = [
         { id: 'summary', name: 'Resumen', icon: <UserIcon size={16} /> },
@@ -337,11 +368,16 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                                                         </button>
                                                         <button
                                                             onClick={executePayment}
-                                                            disabled={!termsConfirmed}
-                                                            className={`flex-1 py-4 rounded-2xl btn-primary font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 ${!termsConfirmed ? 'opacity-30 cursor-not-allowed' : 'shadow-glow'}`}
+                                                            disabled={!termsConfirmed || (selectedPlan && !hasSufficientBalance(selectedPlan))}
+                                                            className={`flex-1 py-4 rounded-2xl btn-primary font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 ${(!termsConfirmed || (selectedPlan && !hasSufficientBalance(selectedPlan))) ? 'opacity-30 cursor-not-allowed' : 'shadow-glow'}`}
                                                         >
                                                             <Zap size={16} /> PAGAR AHORA
                                                         </button>
+                                                        {selectedPlan && usdcBalance !== null && !hasSufficientBalance(selectedPlan) && (
+                                                            <div className="w-full text-center text-[9px] text-red-400 font-black uppercase tracking-wider">
+                                                                ⚠ Saldo insuficiente · Tenés {usdcBalanceFormatted} USDC · Necesitás ${selectedPlan.price.toLocaleString()}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </motion.div>
                                             </motion.div>
@@ -363,7 +399,7 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                                             <Wallet size={18} /> CONECTAR WALLET
                                         </button>
                                     ) : (
-                                        <div className={`flex items-center justify-between px-5 py-3 rounded-2xl border ${chainInfo ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
+                                        <div className={`flex items-center justify-between px-5 py-4 rounded-2xl border ${chainInfo ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
                                             <div className="flex items-center gap-3">
                                                 {chainInfo
                                                     ? <CheckCircle2 size={16} className="text-green-400" />
@@ -371,12 +407,22 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                                                 }
                                                 <div>
                                                     <div className={`text-[8px] uppercase font-black tracking-widest ${chainInfo ? 'text-green-400/70' : 'text-red-400/70'}`}>
-                                                        {chainInfo ? `Wallet OK · ${chainInfo.name}` : 'Red no soportada'}
+                                                        {chainInfo ? `${chainInfo.name}` : 'Red no soportada'}
                                                     </div>
                                                     <div className="text-[10px] font-mono text-white">{connectedWallet.slice(0, 6)}...{connectedWallet.slice(-4)}</div>
+                                                    {chainInfo && (
+                                                        <div className="text-[9px] font-black mt-0.5">
+                                                            {loadingBalance
+                                                                ? <span className="text-white/20 animate-pulse">Cargando saldo...</span>
+                                                                : usdcBalance !== null
+                                                                    ? <span className={usdcBalance === 0n ? 'text-red-400' : 'text-primary'}>{usdcBalanceFormatted} USDC</span>
+                                                                    : <span className="text-white/20">Saldo no disponible</span>
+                                                            }
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <button onClick={() => { setConnectedWallet(null); setActiveChain(null); setPayStatus(null); }} className="text-[8px] text-white/30 font-black uppercase hover:text-white">Cambiar</button>
+                                            <button onClick={() => { setConnectedWallet(null); setActiveChain(null); setPayStatus(null); setUsdcBalance(null); }} className="text-[8px] text-white/30 font-black uppercase hover:text-white">Cambiar</button>
                                         </div>
                                     )}
 
