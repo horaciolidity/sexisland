@@ -43,9 +43,16 @@ const PLANS = [
         id: 'platinum',
         name: 'Platinum Star',
         price: 5200,
-        usdcAmt: 5200n * 1_000_000n,   // USDC = 6 decimals
+        usdcAmt: 5200n * 1_000_000n,
         features: ['Vuelo Charter VVIP', 'Suite Mar Deluxe', 'Acceso Total Fiestas', '60 Estrellas Adultas', 'Crédito Casino $500'],
-        color: 'border-primary/20'
+        color: 'border-primary/20',
+        promo: {
+            seats: 'Asientos 14 – 15',
+            available: 2,
+            bonus: 500,
+            label: '🎰 Bono Casino de Cortesía',
+            expiry: 'Oferta válida solo 48 hs'
+        }
     },
     {
         id: 'diamond',
@@ -54,7 +61,14 @@ const PLANS = [
         usdcAmt: 7500n * 1_000_000n,
         features: ['Jet Privado Global First', 'Villa Piscina Infinita', 'Concierge 24/7', 'Casino Unlimited', 'Stage VIP + Reserva Prioritaria'],
         color: 'border-primary ring-1 ring-primary/30',
-        highlight: true
+        highlight: true,
+        promo: {
+            seats: 'Asientos 22 – 23',
+            available: 2,
+            bonus: 1000,
+            label: '🎰 Bono Casino Premium',
+            expiry: 'Solo 2 lugares disponibles'
+        }
     }
 ];
 
@@ -492,6 +506,31 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                                                             </li>
                                                         ))}
                                                     </ul>
+
+                                                    {/* ── Promo Banner ── */}
+                                                    <div className="promo-breathe rounded-2xl border border-primary/25 overflow-hidden">
+                                                        <div className="promo-shimmer px-4 py-3 flex items-start justify-between gap-3">
+                                                            <div className="space-y-1 flex-1">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-pulse shrink-0" />
+                                                                    <span className="text-[8px] font-black uppercase tracking-[0.25em] text-primary">{plan.promo.seats} · disponibles</span>
+                                                                </div>
+                                                                <div className="text-[11px] font-black text-white leading-tight">{plan.promo.label}</div>
+                                                                <div className="text-[9px] text-white/50 leading-relaxed">
+                                                                    Al confirmar recibís <span className="text-primary font-black">${plan.promo.bonus.toLocaleString()} USD</span> de cortesía para gastar en cualquier mesa o máquina del casino
+                                                                </div>
+                                                            </div>
+                                                            <div className="shrink-0 text-right">
+                                                                <div className="text-xl font-black font-mono gold-text">${plan.promo.bonus.toLocaleString()}</div>
+                                                                <div className="text-[7px] text-white/25 uppercase font-black tracking-wide">CASINO</div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="px-4 py-1.5 bg-black/50 border-t border-primary/10 flex items-center gap-2">
+                                                            <span className="inline-block w-1 h-1 rounded-full bg-yellow-400 animate-pulse" />
+                                                            <span className="text-[7px] font-black uppercase tracking-widest text-yellow-400/60">{plan.promo.expiry}</span>
+                                                        </div>
+                                                    </div>
+
                                                     <button
                                                         onClick={() => handleSelectAndPay(plan)}
                                                         disabled={paying}
@@ -502,6 +541,7 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                                                             : <><Zap size={14} /> PAGAR ${plan.price.toLocaleString()} USDC</>
                                                         }
                                                     </button>
+
                                                 </div>
                                             ))}
                                         </div>

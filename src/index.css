@@ -232,3 +232,42 @@ h4 {
     box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
   }
 }
+
+/* Promo banner — subtle glow breathe */
+@keyframes promo-breathe {
+
+  0%,
+  100% {
+    opacity: 0.85;
+    box-shadow: 0 0 0px rgba(212, 175, 55, 0);
+  }
+
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 18px rgba(212, 175, 55, 0.25);
+  }
+}
+
+.promo-breathe {
+  animation: promo-breathe 3s ease-in-out infinite;
+}
+
+/* Shimmer sweep across promo banner */
+@keyframes promo-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.promo-shimmer {
+  background: linear-gradient(90deg,
+      rgba(212, 175, 55, 0.08) 0%,
+      rgba(255, 240, 150, 0.22) 40%,
+      rgba(212, 175, 55, 0.08) 100%);
+  background-size: 200% auto;
+  animation: promo-shimmer 4s linear infinite;
+}
