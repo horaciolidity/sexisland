@@ -39,6 +39,7 @@ import GroupChat from './components/GroupChat';
 import PlaneVisual from './components/PlaneVisual';
 import LoginModal from './components/LoginModal';
 import UserPanel from './components/UserPanel';
+import AdminPanel from './components/AdminPanel';
 import RegistrationModal from './components/RegistrationModal';
 import './App.css';
 
@@ -47,6 +48,7 @@ function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showUserPanel, setShowUserPanel] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [scrolled, setScrolled] = useState(false);
@@ -148,6 +150,17 @@ function App() {
                   )}
                 </div>
                 <span className="text-[11px] font-black text-white leading-tight uppercase tracking-widest">{profile?.full_name || user.email.split('@')[0]}</span>
+
+                {profile?.role === 'admin' && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowAdminPanel(true); }}
+                    className="p-2 bg-primary/20 text-primary rounded-xl border border-primary/30 hover:bg-primary hover:text-black transition-all"
+                    title="Control Panel"
+                  >
+                    <ShieldCheck size={16} />
+                  </button>
+                )}
+
                 <button onClick={(e) => { e.stopPropagation(); handleLogout(); }} className="text-white/20 hover:text-red-500 transition">
                   <LogOutIcon size={16} />
                 </button>
@@ -519,6 +532,7 @@ function App() {
       {/* Overlays */}
       <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
       <UserPanel isOpen={showUserPanel} onClose={() => setShowUserPanel(false)} user={user} onLogout={handleLogout} />
+      <AdminPanel isOpen={showAdminPanel} onClose={() => setShowAdminPanel(false)} />
       <RegistrationModal isOpen={showRegister} onClose={() => setShowRegister(false)} />
 
       <AnimatePresence>

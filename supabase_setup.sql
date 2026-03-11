@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   locality TEXT,
   preferred_plan TEXT,
   status TEXT DEFAULT 'pending', -- pending, approved, rejected
+  role TEXT DEFAULT 'user',      -- user, admin
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
@@ -30,7 +31,11 @@ CREATE POLICY "Users can insert their own profile" ON public.profiles
 
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 CREATE POLICY "Users can update their own profile" ON public.profiles
-  FOR UPDATE USING (auth.uid() = id);
+  FOR UPDATE USING (auth.uid() = id OR (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin');
+
+DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
+CREATE POLICY "Admins can view all profiles" ON public.profiles
+  FOR SELECT USING (auth.uid() = id OR (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin');
 
 
 -- 2. MEDICAL PROFILES TABLE (Highly Confidential)
@@ -48,15 +53,15 @@ CREATE TABLE IF NOT EXISTS public.medical_profiles (
 -- Enable RLS
 ALTER TABLE public.medical_profiles ENABLE ROW LEVEL SECURITY;
 
--- Policies (Only owner can read/write)
+-- Policies (Only owner or admin can read/write)
 DROP POLICY IF EXISTS "Users can view their own medical profile" ON public.medical_profiles;
 CREATE POLICY "Users can view their own medical profile" ON public.medical_profiles
-  FOR SELECT USING (auth.uid() = id);
+  FOR SELECT USING (auth.uid() = id OR (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin');
 
 DROP POLICY IF EXISTS "Users can insert/update their own medical profile" ON public.medical_profiles;
 CREATE POLICY "Users can insert/update their own medical profile" ON public.medical_profiles
-  FOR ALL USING (auth.uid() = id)
-  WITH CHECK (auth.uid() = id);
+  FOR ALL USING (auth.uid() = id OR (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin')
+  WITH CHECK (auth.uid() = id OR (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin');
 
 
 -- 3. PAYMENTS TABLE (Transaction Logs)
@@ -121,3 +126,11 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ############################################################
+-- MANUAL ADMIN ASSIGNMENT
+-- Run this AFTER the user has signed up to give them admin powers:
+-- ############################################################
+-- UPDATE public.profiles SET role = 'admin' WHERE id = 'ID-DEL-USUARIO-AQUI';
+-- O mejor aún, búscalo por email en profiles si ya existe:
+-- UPDATE public.profiles SET role = 'admin' WHERE id IN (SELECT id FROM auth.users WHERE email = 'horaciowalterortiz@gmail.com');
