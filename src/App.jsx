@@ -47,6 +47,7 @@ function App() {
   const [showRegister, setShowRegister] = useState(false);
   const [showUserPanel, setShowUserPanel] = useState(false);
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -58,7 +59,10 @@ function App() {
 
     // Supabase auth check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setUser(session.user);
+      if (session) {
+        setUser(session.user);
+        fetchProfile(session.user.id);
+      }
     });
 
     // Listen for auth changes
@@ -66,6 +70,9 @@ function App() {
       setUser(session?.user ?? null);
       if (session) {
         setShowLogin(false);
+        fetchProfile(session.user.id);
+      } else {
+        setProfile(null);
       }
     });
 
@@ -74,6 +81,15 @@ function App() {
       subscription.unsubscribe();
     };
   }, []);
+
+  const fetchProfile = async (userId) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    if (data) setProfile(data);
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -123,10 +139,14 @@ function App() {
                 className="flex items-center gap-4 bg-white/5 px-5 py-2.5 rounded-2xl border border-white/10 cursor-pointer hover:bg-white/15 transition group"
                 onClick={() => setShowUserPanel(true)}
               >
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shadow-glow">
-                  <UserIcon size={14} className="text-primary" />
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shadow-glow overflow-hidden">
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <UserIcon size={14} className="text-primary" />
+                  )}
                 </div>
-                <span className="text-[11px] font-black text-white leading-tight uppercase tracking-widest">{user.name}</span>
+                <span className="text-[11px] font-black text-white leading-tight uppercase tracking-widest">{profile?.full_name || user.email.split('@')[0]}</span>
                 <button onClick={(e) => { e.stopPropagation(); handleLogout(); }} className="text-white/20 hover:text-red-500 transition">
                   <LogOutIcon size={16} />
                 </button>

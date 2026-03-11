@@ -118,6 +118,42 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
         if (data) setProfile(data);
     };
 
+    const handleUploadAvatar = async (e) => {
+        try {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+            const filePath = `avatars/${fileName}`;
+
+            setLoadingBalance(true); // Reusing loading state for feedback
+
+            const { error: uploadError } = await supabase.storage
+                .from('user-content')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('user-content')
+                .getPublicUrl(filePath);
+
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ avatar_url: publicUrl })
+                .eq('id', user.id);
+
+            if (updateError) throw updateError;
+
+            fetchProfile();
+        } catch (err) {
+            alert('Error al subir la imagen: ' + err.message);
+        } finally {
+            setLoadingBalance(false);
+        }
+    };
+
     const copyToClipboard = () => {
         navigator.clipboard.writeText(RECIPIENT);
         setCopied(true);
@@ -262,8 +298,16 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                         <div className="p-8 border-b border-white/5 flex justify-between items-center bg-black/20">
                             <div className="flex items-center gap-4">
                                 <div className="relative group">
-                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-transparent border border-primary/30 flex items-center justify-center">
-                                        <UserIcon size={32} className="text-primary" />
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-transparent border border-primary/30 flex items-center justify-center overflow-hidden">
+                                        {profile?.avatar_url ? (
+                                            <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <UserIcon size={32} className="text-primary" />
+                                        )}
+                                        <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                            <Camera size={20} className="text-white" />
+                                            <input type="file" accept="image/*" className="hidden" onChange={handleUploadAvatar} />
+                                        </label>
                                     </div>
                                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-[#0A0E14] flex items-center justify-center shadow-lg">
                                         <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
@@ -337,7 +381,7 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                                             <div className="grid grid-cols-2 gap-y-8">
                                                 <div>
                                                     <div className="text-[8px] text-white/20 uppercase font-black tracking-widest mb-2">Member</div>
-                                                    <div className="text-sm font-black text-white">{user?.name?.toUpperCase() || 'MIEMBRO VIP'}</div>
+                                                    <div className="text-sm font-black text-white">{profile?.full_name?.toUpperCase() || user?.email?.split('@')[0]?.toUpperCase() || 'MIEMBRO VIP'}</div>
                                                 </div>
                                                 <div className="text-right">
                                                     <div className="text-[8px] text-white/20 uppercase font-black tracking-widest mb-2">Access Level</div>

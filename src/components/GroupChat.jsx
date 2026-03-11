@@ -1,4 +1,6 @@
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Send, X, Shield, Lock, Check, CheckCheck } from 'lucide-react';
 
 const GroupChat = ({ onClose, user }) => {

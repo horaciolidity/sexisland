@@ -9,8 +9,12 @@ const LoginModal = ({ isOpen, onClose }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const handleLoginClick = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!email || !password) {
+            setError('Por favor complete todos los campos');
+            return;
+        }
         setLoading(true);
         setError(null);
         try {
@@ -46,7 +50,7 @@ const LoginModal = ({ isOpen, onClose }) => {
                         <div className="flex justify-between items-center mb-10 relative z-10 md:mt-0 mt-[-40px]">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-primary/20 rounded-2xl border border-primary/30 shadow-glow">
-                                    <Shield className="text-primary" size={28} />
+                                    <ShieldCheck className="text-primary" size={28} />
                                 </div>
                                 <div>
                                     <h2 className="text-2xl font-black tracking-tighter text-white uppercase italic-luxury">VIP ACCESS</h2>
@@ -58,9 +62,20 @@ const LoginModal = ({ isOpen, onClose }) => {
                             </button>
                         </div>
 
+                        {error && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-400 text-xs font-black uppercase tracking-wider relative z-10"
+                            >
+                                <AlertCircle size={18} />
+                                {error}
+                            </motion.div>
+                        )}
+
                         <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black text-dim uppercase tracking-[0.3em] pl-1">Email de Invitación</label>
+                                <label className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] pl-1">Email de Invitación</label>
                                 <div className="relative group">
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-primary transition-colors" size={20} />
                                     <input
@@ -75,7 +90,7 @@ const LoginModal = ({ isOpen, onClose }) => {
                             </div>
 
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black text-dim uppercase tracking-[0.3em] pl-1">Código de Seguridad</label>
+                                <label className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] pl-1">Código de Seguridad</label>
                                 <div className="relative group">
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-primary transition-colors" size={20} />
                                     <input
@@ -89,16 +104,28 @@ const LoginModal = ({ isOpen, onClose }) => {
                                 </div>
                             </div>
 
-                            <button type="submit" className="btn-primary w-full py-5 text-[11px] tracking-[0.4em] font-black uppercase mt-6 shadow-[0_20px_50px_rgba(212,175,55,0.2)]">
-                                INGRESAR AL PARAÍSO
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="btn-primary w-full py-5 text-[11px] tracking-[0.4em] font-black uppercase mt-6 shadow-[0_20px_50px_rgba(212,175,55,0.2)] flex items-center justify-center gap-3 disabled:opacity-50"
+                            >
+                                {loading ? (
+                                    <RefreshCw className="animate-spin" size={18} />
+                                ) : (
+                                    <>INGRESAR AL PARAÍSO <ShieldCheck size={18} /></>
+                                )}
                             </button>
 
                             <div className="text-center pt-4">
-                                <a href="#" className="text-[9px] text-white/20 hover:text-primary transition uppercase font-black tracking-[0.5em]">
+                                <button
+                                    type="button"
+                                    className="text-[9px] text-white/20 hover:text-primary transition uppercase font-black tracking-[0.5em]"
+                                >
                                     ¿SOLICITAR NUEVA INVITACIÓN?
-                                </a>
+                                </button>
                             </div>
                         </form>
+
 
                         <div className="mt-12 text-center relative z-10">
                             <p className="text-[8px] text-white/10 uppercase tracking-[0.6em]">SECURE ACCESS BY SANTUARIO OS</p>
