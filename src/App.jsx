@@ -32,7 +32,8 @@ import {
   ChevronRight,
   Tv,
   Bed,
-  Eye
+  Eye,
+  MapPin
 } from 'lucide-react';
 import GroupChat from './components/GroupChat';
 import PlaneVisual from './components/PlaneVisual';
