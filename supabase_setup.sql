@@ -128,9 +128,17 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ############################################################
+-- MIGRATION: ADD ROLE COLUMN IF MISSING
+-- ############################################################
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='profiles' AND column_name='role') THEN
+    ALTER TABLE public.profiles ADD COLUMN role TEXT DEFAULT 'user';
+  END IF;
+END $$;
+
+-- ############################################################
 -- MANUAL ADMIN ASSIGNMENT
 -- Run this AFTER the user has signed up to give them admin powers:
 -- ############################################################
--- UPDATE public.profiles SET role = 'admin' WHERE id = 'ID-DEL-USUARIO-AQUI';
--- O mejor aún, búscalo por email en profiles si ya existe:
 -- UPDATE public.profiles SET role = 'admin' WHERE id IN (SELECT id FROM auth.users WHERE email = 'horaciowalterortiz@gmail.com');
