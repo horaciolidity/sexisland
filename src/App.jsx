@@ -516,7 +516,7 @@ function App() {
       </section>
 
       {/* Overlays */}
-      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} onLogin={handleLogin} />
+      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
       <UserPanel isOpen={showUserPanel} onClose={() => setShowUserPanel(false)} user={user} onLogout={handleLogout} />
       <RegistrationModal isOpen={showRegister} onClose={() => setShowRegister(false)} />
 
