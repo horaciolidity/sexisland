@@ -1,24 +1,47 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { supabase } from '../lib/supabaseClient';
 import { Send, X, Shield, Lock, Check, CheckCheck } from 'lucide-react';
 
 const GroupChat = ({ onClose, user }) => {
-    const [messages, setMessages] = useState([
-        { id: 1, user: 'Admin General', text: '🔥 Señores, estamos a solo 45 días del despegue. Prepárense para la mejor semana de sus vidas.', type: 'staff', time: '09:00' },
-        { id: 2, user: 'Marco V.', text: 'Pregunta seria: ¿Hay código de vestimenta para el casino o podemos ir de shorts?', type: 'user', time: '10:15' },
-        { id: 3, user: 'Staff Carlos', text: 'Marco, en el Casino VIP pedimos elegancia tropical. Camisa de lino y pantalón. Pero no te preocupes, ¡lo que pase después no necesita mucha ropa! 😂', type: 'staff', time: '10:18' },
-        { id: 4, user: 'Robert Dubai', text: 'Jajaja Carlos tiene razón. Yo ya compré 3 relojes nuevos para lucir con las chicas. ¿Alguien sabe si Nicole vuelve este año? La de las fotos es increíble.', type: 'user', time: '11:05' },
-        { id: 5, user: 'Staff Carlos', text: 'Robert, Nicole está confirmada y viene con 3 amigas nuevas que te van a dejar sin aliento. El casting de este año es nivel Victoria Secret.', type: 'staff', time: '11:10' },
-        { id: 6, user: 'M. Rossi', text: '¿Cuántas Diamond Villas quedan? Somos un grupo de 5 y queremos estar todos juntos cerca del muelle.', type: 'user', time: '12:30' },
-        { id: 7, user: 'Admin General', text: 'M. Rossi, solo quedan 2 villas Diamond. Si son 5, les recomiendo reservar hoy mismo para asegurar el bloque privado.', type: 'staff', time: '12:35' },
-        { id: 8, user: 'Javier L.', text: 'Acabo de ver el video del crucero... Dios mío, ¿el DJ realmente es quien creo que es? Si es él, este viaje se paga solo.', type: 'user', time: '13:45' },
-        { id: 9, user: 'Staff Carlos', text: '🤐 El contrato nos impide decir el nombre hasta la próxima semana, pero sí Javier... prepárate para un set legendario.', type: 'staff', time: '13:50' },
-        { id: 10, user: 'M. Rossi', text: '¡LISTO! Villa reservada. Nos vemos en el paraíso señores. Yo pongo el primer brindis en el Jet.', type: 'user', time: '14:20' },
-        { id: 11, user: 'Robert Dubai', text: 'Ese es el espíritu Rossi. ¡Salud! 🥂', type: 'user', time: '14:25' },
-        { id: 12, user: 'Admin General', text: 'Aviso: La sesión de fotos en la playa secreta será el Día 3. Traigan bloqueador, porque el sol no será lo único que queme ese día. 🔥💦', type: 'staff', time: '15:00' },
-    ]);
+    const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const chatEndRef = useRef(null);
+
+    useEffect(() => {
+        fetchMessages();
+
+        const channel = supabase
+            .channel('global_messages')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'global_messages' }, payload => {
+                setMessages(prev => [...prev, transformMessage(payload.new)]);
+            })
+            .subscribe();
+
+        return () => supabase.removeChannel(channel);
+    }, []);
+
+    const fetchMessages = async () => {
+        const { data } = await supabase
+            .from('global_messages')
+            .select('*')
+            .order('created_at', { ascending: true })
+            .limit(50);
+
+        if (data) {
+            setMessages(data.map(transformMessage));
+        }
+    };
+
+    const transformMessage = (msg) => {
+        const date = new Date(msg.created_at);
+        const time = `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+        return {
+            id: msg.id,
+            user: msg.user_name || 'Invitado VIP',
+            text: msg.content,
+            type: msg.user_id === user?.id ? 'me' : 'user',
+            time
+        };
+    };
 
     const scrollToBottom = () => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -26,19 +49,20 @@ const GroupChat = ({ onClose, user }) => {
 
     useEffect(scrollToBottom, [messages]);
 
-    const handleSend = (e) => {
+    const handleSend = async (e) => {
         e.preventDefault();
-        if (!input.trim()) return;
-        const now = new Date();
-        const time = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-        setMessages([...messages, {
-            id: Date.now(),
-            user: user?.name || 'Invitado VIP',
-            text: input,
-            type: 'me',
-            time
-        }]);
+        if (!input.trim() || !user) return;
+
+        const content = input;
         setInput('');
+
+        const { error } = await supabase.from('global_messages').insert({
+            user_id: user.id,
+            user_name: user.user_metadata?.full_name || 'Invitado VIP',
+            content: content
+        });
+
+        if (error) console.error("Error sending message:", error);
     };
 
     return (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from './lib/supabaseClient';
 import {
   Ship,
   Dices,
@@ -54,22 +55,35 @@ function App() {
       setScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    // Supabase auth check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setUser(session.user);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session) {
+        setShowLogin(false);
+      }
+    });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const handleLogin = (userData) => {
-    setUser(userData);
-    setShowLogin(false);
-    setShowUserPanel(true);
-  };
-
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setShowUserPanel(false);
   };
 
   const navigationLinks = [
     { name: 'Santuario', href: '#experiencia' },
+    { name: 'Momentos VIP', href: '#momentos' },
     { name: 'Stars VIP', href: '#modelos' },
     { name: 'Suites VIP', href: '#suites' },
     { name: 'Vuelo', href: '#vuelo' },
@@ -330,6 +344,50 @@ function App() {
             >
               VER CATÁLOGO DE 60 ESTRELLAS <Flame size={18} className="inline ml-2 md:ml-3 animate-pulse" />
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* MOMENTS SECTION - Grouped Photos */}
+      <section id="momentos" className="py-24 md:py-40 bg-[#05070A] border-y border-white/5 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 md:px-8">
+          <div className="text-center mb-16 md:mb-24">
+            <span className="section-tag">EL ESTILO DE VIDA</span>
+            <h2 className="text-4xl md:text-6xl lg:text-8xl font-black mb-6 md:mb-8 gold-text italic-luxury font-serif uppercase tracking-tighter">Santuario Moments</h2>
+            <p className="text-white/40 text-lg md:text-xl font-light max-w-2xl mx-auto italic font-serif">
+              "Donde las etnias se mezclan y el deseo no tiene fronteras. Vivencias grupales en los escenarios más exclusivos del mundo."
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+            <GroupMoment
+              title="Yacht Party Elite"
+              location="High Seas — Mediterranean"
+              desc="Una mezcla perfecta de rubias, latinas y bellezas negras en la fiesta más salvaje del verano."
+              images={["/emily.png", "/gabie.png", "/dani.png"]}
+              tag="LIVE NOW"
+            />
+            <GroupMoment
+              title="Executive Penthouse"
+              location="Manhattan — Private Suite"
+              desc="Sofisticación y poder. La elegancia de nuestras estrellas en un entorno de negocios y placer."
+              images={["/cory.png", "/kendra.png", "/lana.png"]}
+              tag="EXCLUSIVE"
+            />
+            <GroupMoment
+              title="Beach Club Sunset"
+              location="Private Island — Caribbean"
+              desc="Sol, arena blanca y la compañía de las diosas más cotizadas del cine adulto actual."
+              images={["/adriana.png", "/gianna.png", "/mia.png"]}
+              tag="VIP ONLY"
+            />
+            <GroupMoment
+              title="Nightlife Sovereign"
+              location="Dubai — Secret Club"
+              desc="El misterio de la noche se encuentra con la belleza exótica en nuestro casino clandestino."
+              images={["/sasha.png", "/abella.png", "/angela.png"]}
+              tag="TOP TRENDING"
+            />
           </div>
         </div>
       </section>
@@ -675,6 +733,57 @@ function ServiceItem({ icon, title, desc, img }) {
         <p className="text-white/40 text-xs md:text-sm leading-relaxed group-hover:text-white/80 transition-colors duration-500 font-light">{desc}</p>
       </div>
     </div>
+  );
+}
+
+function GroupMoment({ title, location, desc, images, tag }) {
+  return (
+    <motion.div
+      whileHover={{ scale: 1.01 }}
+      className="group relative p-8 md:p-12 rounded-[50px] bg-white/[0.02] border border-white/5 hover:border-primary/20 transition-all duration-700 overflow-hidden"
+    >
+      <div className="flex flex-col lg:flex-row gap-8 items-center mb-10">
+        <div className="flex -space-x-12 md:-space-x-16 hover:space-x-2 transition-all duration-700 ease-in-out cursor-pointer">
+          {images.map((img, i) => (
+            <div
+              key={i}
+              className={`relative w-24 h-24 md:w-40 md:h-40 rounded-full border-4 border-black shadow-2xl overflow-hidden z-[${10 - i}] hover:z-50 hover:scale-110 transition-all duration-500`}
+              style={{ zIndex: 10 - i }}
+            >
+              <img src={img} className="w-full h-full object-cover" alt={`Group member ${i}`} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+            </div>
+          ))}
+          <div className="w-24 h-24 md:w-40 md:h-40 rounded-full bg-primary/10 border-2 border-dashed border-primary/30 flex items-center justify-center text-primary font-black text-xs md:text-sm z-0">
+            +57
+          </div>
+        </div>
+
+        <div className="flex-1 text-center lg:text-left">
+          <div className="flex items-center justify-center lg:justify-start gap-4 mb-2">
+            <span className="px-3 py-1 bg-primary/20 rounded-full text-[8px] font-black text-primary uppercase tracking-widest">{tag}</span>
+            <span className="text-[9px] text-white/30 font-black uppercase tracking-widest flex items-center gap-1">
+              <MapPin size={10} /> {location}
+            </span>
+          </div>
+          <h3 className="text-xl md:text-3xl font-black italic-luxury italic font-serif gold-text uppercase mb-3">{title}</h3>
+          <p className="text-white/40 text-[10px] md:text-xs leading-relaxed max-w-md mx-auto lg:mx-0">{desc}</p>
+        </div>
+      </div>
+
+      {/* Mini Instagram Grid for the moment */}
+      <div className="grid grid-cols-3 gap-3 md:gap-4 opacity-40 group-hover:opacity-100 transition-opacity duration-700">
+        <div className="aspect-square rounded-2xl overflow-hidden border border-white/5 grayscale group-hover:grayscale-0 transition-all">
+          <img src="/luxury_private_island_cruise.png" className="w-full h-full object-cover" alt="Moment 1" />
+        </div>
+        <div className="aspect-square rounded-2xl overflow-hidden border border-white/5 grayscale group-hover:grayscale-0 transition-all">
+          <img src="/luxury_casino_night_dj.png" className="w-full h-full object-cover" alt="Moment 2" />
+        </div>
+        <div className="aspect-square rounded-2xl overflow-hidden border border-white/5 grayscale group-hover:grayscale-0 transition-all">
+          <img src="/vip_service.png" className="w-full h-full object-cover" alt="Moment 3" />
+        </div>
+      </div>
+    </motion.div>
   );
 }
 

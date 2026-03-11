@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, ShieldCheck, FileText, Stethoscope, AlertCircle,
@@ -14,7 +15,7 @@ const RegistrationModal = ({ isOpen, onClose }) => {
     const [submitted, setSubmitted] = useState(false);
     const [formData, setFormData] = useState({
         // Step 1 - Personal
-        fullName: '', birthDate: '', nationality: '', phone: '', locality: '', email: '',
+        fullName: '', birthDate: '', nationality: '', phone: '', locality: '', email: '', password: '',
         ageVerified: false,
         // Step 2 - Medical
         chronicConditions: '', medications: '', allergies: '', bloodType: '', surgeries: '', mentalHealth: '',
@@ -37,7 +38,7 @@ const RegistrationModal = ({ isOpen, onClose }) => {
     const update = (field, val) => setFormData(prev => ({ ...prev, [field]: val }));
 
     const isStepValid = () => {
-        if (step === 1) return formData.fullName && formData.birthDate && formData.phone && formData.locality && formData.email && formData.ageVerified;
+        if (step === 1) return formData.fullName && formData.birthDate && formData.phone && formData.locality && formData.email && formData.password && formData.ageVerified;
         if (step === 2) return true;
         if (step === 3) return formData.passportNumber && formData.passportExpiry;
         if (step === 4) return true;
@@ -45,13 +46,70 @@ const RegistrationModal = ({ isOpen, onClose }) => {
         return false;
     };
 
-    const handleFinish = () => {
-        setSubmitted(true);
-        setTimeout(() => {
-            setSubmitted(false);
-            setStep(1);
-            onClose();
-        }, 4000);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const handleFinish = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            // 1. Sign Up
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: formData.email,
+                password: formData.password,
+                options: {
+                    data: {
+                        full_name: formData.fullName,
+                    }
+                }
+            });
+
+            if (authError) throw authError;
+
+            const userId = authData.user?.id;
+
+            if (userId) {
+                // 2. Update Profile with extra info
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .update({
+                        birth_date: formData.birthDate,
+                        nationality: formData.nationality,
+                        phone: formData.phone,
+                        locality: formData.locality,
+                        preferred_plan: formData.preferredPlan || 'none',
+                    })
+                    .eq('id', userId);
+
+                if (profileError) console.error("Profile update error:", profileError);
+
+                // 3. Insert Medical Profile
+                const { error: medicalError } = await supabase
+                    .from('medical_profiles')
+                    .upsert({
+                        id: userId,
+                        blood_type: formData.bloodType,
+                        chronic_conditions: formData.chronicConditions,
+                        medications: formData.medications,
+                        allergies: formData.allergies,
+                        surgeries: formData.surgeries,
+                        mental_health: formData.mentalHealth,
+                    });
+
+                if (medicalError) console.error("Medical profile update error:", medicalError);
+            }
+
+            setSubmitted(true);
+            setTimeout(() => {
+                setSubmitted(false);
+                setStep(1);
+                onClose();
+            }, 4000);
+        } catch (err) {
+            setError(err.message || 'Error al procesar la admisión');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -133,6 +191,10 @@ const RegistrationModal = ({ isOpen, onClose }) => {
                                         <div>
                                             <label className={labelClass}>Localidad / Ciudad de Residencia</label>
                                             <input type="text" className={inputClass} placeholder="Buenos Aires, AR" value={formData.locality} onChange={e => update('locality', e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <label className={labelClass}>Contraseña de Acceso</label>
+                                            <input type="password" className={inputClass} placeholder="••••••••" value={formData.password} onChange={e => update('password', e.target.value)} />
                                         </div>
                                     </div>
 

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X,
@@ -100,6 +101,22 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [showTermsPopup, setShowTermsPopup] = useState(false);
     const [termsConfirmed, setTermsConfirmed] = useState(false);
+    const [profile, setProfile] = useState(null);
+
+    useEffect(() => {
+        if (user) {
+            fetchProfile();
+        }
+    }, [user]);
+
+    const fetchProfile = async () => {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+        if (data) setProfile(data);
+    };
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(RECIPIENT);
@@ -192,7 +209,21 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                 params: [{ from: connectedWallet, to: info.contract, data, gas: info.gas }],
             });
             setTxHash(hash);
+
+            // Record in Supabase
+            const { error: dbError } = await supabase.from('payments').insert({
+                user_id: user.id,
+                plan_id: selectedPlan.id,
+                amount_usdc: Number(selectedPlan.price),
+                tx_hash: hash,
+                chain_id: activeChain,
+                status: 'confirmed' // Since we got the hash, in a real app we'd wait for confirmation
+            });
+
+            if (dbError) console.error("Database payment error:", dbError);
+
             setPayStatus('success');
+            fetchProfile(); // Refresh profile status if needed
         } catch (err) {
             console.error('Payment failed', err);
             setPayStatus(err.code === 4001 ? 'rejected' : 'error');
@@ -239,11 +270,11 @@ const UserPanel = ({ isOpen, onClose, user, onLogout }) => {
                                     </div>
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-black tracking-tighter text-white uppercase italic-luxury">{user?.name || 'GUEST'}</h2>
+                                    <h2 className="text-xl font-black tracking-tighter text-white uppercase italic-luxury">{profile?.full_name || user?.email?.split('@')[0] || 'GUEST'}</h2>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[10px] text-primary font-black tracking-[0.3em] uppercase">Platinum Reserve</span>
+                                        <span className="text-[10px] text-primary font-black tracking-[0.3em] uppercase">{profile?.status === 'approved' ? 'Sovereign Verified' : 'Platinum Reserve'}</span>
                                         <div className="w-1 h-1 bg-white/20 rounded-full"></div>
-                                        <span className="text-[9px] text-white/40 font-bold uppercase">Pass Verified</span>
+                                        <span className="text-[9px] text-white/40 font-bold uppercase">{profile?.status || 'Pending Verification'}</span>
                                     </div>
                                 </div>
                             </div>

@@ -1,16 +1,31 @@
 import React, { useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogIn, Shield, X, Mail, Lock, User as UserIcon } from 'lucide-react';
+import { X, LogIn, Mail, Lock, ShieldCheck, RefreshCw, AlertCircle } from 'lucide-react';
 
-const LoginModal = ({ isOpen, onClose, onLogin }) => {
+const LoginModal = ({ isOpen, onClose }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    const handleSubmit = (e) => {
+    const handleLoginClick = async (e) => {
         e.preventDefault();
-        // Simulate login
-        onLogin({ name: email.split('@')[0], email });
-        onClose();
+        setLoading(true);
+        setError(null);
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (error) throw error;
+            onClose();
+        } catch (err) {
+            setError(err.message || 'Error al iniciar sesión');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
